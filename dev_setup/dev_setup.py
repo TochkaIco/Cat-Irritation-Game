@@ -14,7 +14,7 @@ def windows_setup():
 
     try:
         print("Installing Git...")
-        subprocess.run(["winget", "install", "--id", "Git.Git", "-e", "--source", "winget", "--silent"], check=True)
+        subprocess.run(["winget", "install", "--id", "Git.Git", "-e", "--source", "winget", "--silent"], check=False)
         print("Ensuring Python is installed...")
         subprocess.run(["winget", "install", "--id", "Python.Python.3.14", "-e", "--source", "winget", "--silent"],
                        check=False)
@@ -26,7 +26,7 @@ def windows_setup():
     subprocess.run([sys.executable, "-m", "venv", ".venv"], check=True)
 
     print("Installing requirements...")
-    subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=True)
+    subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=False)
     subprocess.run([venv_python, "-m", "pip", "install", "requests"], check=True)
     if os.path.exists("requirements.txt"):
         subprocess.run([venv_python, "-m", "pip", "install", "-r", "requirements.txt"], check=True)
