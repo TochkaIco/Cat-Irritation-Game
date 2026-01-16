@@ -2,6 +2,21 @@ import os
 import platform
 import sys
 import subprocess
+import logging
+from logging.handlers import RotatingFileHandler
+
+LOG_FILE = "setup.log"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        RotatingFileHandler(LOG_FILE, maxBytes=1_000_000, backupCount=3),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 os_name = platform.system() # Identifying the platform
 if os_name == "Windows":  # Path to venv
@@ -9,18 +24,28 @@ if os_name == "Windows":  # Path to venv
 else:
     venv_python = os.path.join(".venv", "bin", "python")
 
+def command_exists(cmd):
+    return subprocess.run(
+        ["where", cmd],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    ).returncode == 0
+
 def windows_setup():
     print("Detected Windows. Checking system dependencies...")
 
     try:
         print("Installing Git...")
-        subprocess.run(["winget", "install", "--id", "Git.Git", "-e", "--source", "winget", "--silent"], check=False)
+        if not command_exists("git"):
+            subprocess.run(["winget", "install", "--id", "Git.Git", "-e", "--source", "winget", "--silent"], check=True)
+
         print("Ensuring Python is installed...")
-        subprocess.run(["winget", "install", "--id", "Python.Python.3.14", "-e", "--source", "winget", "--silent"],
-                       check=False)
+        if not command_exists("python"):
+            subprocess.run(["winget", "install", "--id", "Python.Python.3.14", "-e", "--source", "winget", "--silent"],
+                       check=True)
     except FileNotFoundError:
-        print("Error: WinGet not found. Please install Git and Python manually from their websites.")
-        return
+        logger.error("File not found", exc_info=True)
+        raise
 
     print("Creating virtual environment...")
     subprocess.run([sys.executable, "-m", "venv", ".venv"], check=True)
@@ -48,7 +73,8 @@ def linux_setup():
         update_cmd = ["sudo", "apt", "update"]
         install_cmd = ["sudo", "apt", "install", "-y", "python3-full", "git"]
     else:
-        raise RuntimeError("Unsupported package manager.")
+        logger.error("Unsupported package manager", exc_info=True)
+        raise
 
     print(f"Detected {manager}. Updating and installing...")
 
@@ -63,13 +89,19 @@ def linux_setup():
         subprocess.run([venv_python, "-m", "pip", "install", "-r", "requirements.txt"], check=True) # pip installing packages from requirements.txt
         print("Successfully installed git, python, python venv, pip and pip packages.")
     except subprocess.CalledProcessError as e:
-        raise RuntimeError("Failed to install, error: {e}")
+        logger.error("Failed to install, error: {e}", exc_info=True)
+        raise
 
-if os_name!="Windows" and os_name!="Linux":
-    raise RuntimeError(f"Only Windows and Linux systems are supported. Current platform: {os_name}")
+try:
+    if os_name!="Windows" and os_name!="Linux":
+        logger.error(f"Only Windows and Linux systems are supported. Current platform: {os_name}", exc_info=True)
 
-# Calling the corresponding setup function
-if os_name == "Windows":
-    windows_setup()
-elif os_name == "Linux":
-    linux_setup()
+    # Calling the corresponding setup function
+    if os_name == "Windows":
+        windows_setup()
+    elif os_name == "Linux":
+        linux_setup()
+
+except Exception as e:
+    logger.critical("Fatal crash", exc_info=True)
+    raise
