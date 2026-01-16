@@ -1,7 +1,6 @@
 import os
 import platform
 import sys
-import distro
 import subprocess
 
 os_name = platform.system() # Identifying the platform
@@ -73,6 +72,7 @@ if os_name!="Windows" and os_name!="Linux":
 if os_name == "Windows":
     windows_setup()
 elif os_name == "Linux":
+    import distro
     distro_name = distro.name()
     if "Debian" in distro_name or "Ubuntu" in distro_name: # Verifying Linux distro type
         distro_name = "Debian-Ubuntu"
