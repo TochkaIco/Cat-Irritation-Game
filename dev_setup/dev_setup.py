@@ -25,7 +25,6 @@ def windows_setup():
 
     print("Creating virtual environment...")
     subprocess.run([sys.executable, "-m", "venv", ".venv"], check=True)
-    venv_python = os.path.join(".venv", "Scripts", "python.exe")
 
     print("Installing requirements...")
     subprocess.run([venv_python, "-m", "pip", "install", "--upgrade", "pip"], check=True)
@@ -60,7 +59,7 @@ def linux_setup():
         subprocess.run(install_cmd, check=True)
         # Package Install
         os.chdir("..")
-        subprocess.run(["python", "-m", "venv", ".venv"]) # Creating and sourcing the venv
+        subprocess.run([sys.executable, "-m", "venv", ".venv"]) # Creating and sourcing the venv
         subprocess.run([venv_python, "-m", "pip", "install", "requests"], check=True)
         subprocess.run([venv_python, "-m", "pip", "install", "-r", "requirements.txt"], check=True) # pip installing packages from requirements.txt
         print("Successfully installed git, python, python venv, pip and pip packages.")
