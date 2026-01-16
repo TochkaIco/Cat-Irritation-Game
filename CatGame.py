@@ -16,7 +16,7 @@ clock = pygame.time.Clock()
 DeltaTime = 0.1
 #sprites --
 # cm- Roman you will be a placeholder for everything
-Roman = pygame.image.load("Roman-Verde.png").convert_alpha()
+Roman = pygame.image.load("Images/Roman-Verde.png").convert_alpha()
 #}
 
 ###LogicAspects
