@@ -11,22 +11,30 @@ import pygame
 #{
 #basics --
 pygame.init()
-screen = pygame.display.set_mode((1024,512))
+screen = pygame.display.set_mode((1024,512),pygame.RESIZABLE)
 clock = pygame.time.Clock()
 DeltaTime = 0.1
 #sprites --
 # cm- Roman you will be a placeholder for everything
 Roman = pygame.image.load("Images/Roman-Verde.png").convert_alpha()
+Roman = pygame.transform.scale_by(Roman,0.3)
 #}
 
 ###LogicAspects
-#Global variables
+#{
+##Global variables
+#{
 Running = True
 
 Default_Objects = []
 Scene = "MainScene"
 LoadedScene = False
 
+#Layers__--__
+PlayerLayer = []
+WallLayer = []
+
+#}
 #Global Functions
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
@@ -34,6 +42,18 @@ def Move(obj):
     obj.x += obj.xvelocity * DeltaTime
     obj.y += obj.yvelocity * DeltaTime
     obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
+
+def CollisionCheck(obj):
+    if obj.Layer == "PlayerLayer":
+        for object in range(len(WallLayer)):
+            obj.Hitbox.colliderect(WallLayer[object].Hitbox)
+
+
+def CorrectXPosition():
+    pass
+
+def CorrectYPosition():
+    pass
 
 #Classes
 class Player:
@@ -52,8 +72,12 @@ class Player:
         self.pic = self.OriginPic
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
         self.PicAngle = 0
-        #do last
+        self.Layer = "PlayerLayer"
+        
+        #Put all __init__ logic before the append
         Default_Objects.append(self)
+        PlayerLayer.append(self)
+
     
     def Control_Player(self):
         for event in PyEvents:
@@ -77,12 +101,16 @@ class Player:
                     self.xvelocity -= -self.WalkSpeed
                 if event.key == pygame.K_d:
                     self.xvelocity -= self.WalkSpeed
-        
+#}
+
 
 #Misc
 DefaultPlayer = Player(256,256)
+tempthing = 1024
 
 while Running == True:
+    #tempthing -= 1
+    #screen = pygame.display.set_mode((tempthing,512),pygame.RESIZABLE)
     PyEvents = pygame.event.get()
     for event in PyEvents:
         if event.type == pygame.QUIT:
@@ -102,11 +130,14 @@ while Running == True:
             Rotate(Default_Objects[obj])
             screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox)          
             Move(Default_Objects[obj])
+            if Default_Objects[obj].Layer != "WallLayer":
+                CollisionCheck(Default_Objects[obj])
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
     DeltaTime = clock.tick(60) / 1000
     DeltaTime = max(0.001, min(0.1, DeltaTime))
+    print("meow")
     pygame.display.flip()
 
 
