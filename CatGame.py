@@ -30,6 +30,9 @@ LoadedScene = False
 #Global Functions
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
+def Move(obj):
+    obj.x += obj.xvelocity
+    obj.y += obj.yvelocity
 
 #Classes
 class Player:
@@ -50,7 +53,12 @@ class Player:
         self.PicAngle = 0
         #do last
         Default_Objects.append(self)
-
+    
+    def Control_Player(obj):
+        for event in PyEvents:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w:
+                    pass
         
 
 #Misc
@@ -69,14 +77,13 @@ while Running == True:
         if LoadedScene == False:
             print ("loading scene")
             LoadedScene = True
+        #-
         
-        #______ Adam Ohlsén
-        #Do you guys want to instantiate Default_objects and have all the logic
-        #run through global functions instead of class functions?
-        # Like this:
+
         for obj in range(len(Default_Objects)):
             Rotate(Default_Objects[obj])
-            screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox )
+            screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox)
+            Move(Default_Objects[obj])
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
