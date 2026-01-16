@@ -36,6 +36,10 @@ WallLayer = []
 
 #}
 #Global Functions
+def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
+
+    pass
+
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
 def Move(obj):
@@ -43,16 +47,20 @@ def Move(obj):
     obj.y += obj.yvelocity * DeltaTime
     obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
+
+def GetExactCollidePoint(obj1,obj2):
+    pass
 def CollisionCheck(obj):
     if obj.Layer == "PlayerLayer":
         for object in range(len(WallLayer)):
-            obj.Hitbox.colliderect(WallLayer[object].Hitbox)
+            if obj.Hitbox.colliderect(WallLayer[object].Hitbox):
+                pass
 
 
-def CorrectXPosition():
+def CorrectXPosition(obj1, obj2):
     pass
 
-def CorrectYPosition():
+def CorrectYPosition(obj1, obj2):
     pass
 
 #Classes
@@ -78,7 +86,6 @@ class Player:
         Default_Objects.append(self)
         PlayerLayer.append(self)
 
-    
     def Control_Player(self):
         for event in PyEvents:
             #-                                      -#
@@ -100,7 +107,27 @@ class Player:
                 if event.key == pygame.K_a:
                     self.xvelocity -= -self.WalkSpeed
                 if event.key == pygame.K_d:
-                    self.xvelocity -= self.WalkSpeed
+                    self.xvelocity -= self.WalkSpeed    
+
+class Wall:
+    Wall_Class_Picture = Roman
+    def __init__(self,x,y):
+        #X and Y
+        self.x = x
+        self.y = y
+
+        #Misc
+        self.OriginPic = Wall.Wall_Class_Picture
+        self.pic = self.OriginPic
+        self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+        self.PicAngle = 0
+        self.Layer = "WallLayer"
+
+        Default_Objects.append(self)
+        WallLayer.append(self)
+
+    
+    
 #}
 
 
@@ -109,7 +136,8 @@ DefaultPlayer = Player(256,256)
 tempthing = 1024
 
 while Running == True:
-    #tempthing -= 1
+    tempthing -= 1
+    Wall(tempthing, 100)
     #screen = pygame.display.set_mode((tempthing,512),pygame.RESIZABLE)
     PyEvents = pygame.event.get()
     for event in PyEvents:
@@ -128,8 +156,9 @@ while Running == True:
         DefaultPlayer.Control_Player()
         for obj in range(len(Default_Objects)):
             Rotate(Default_Objects[obj])
-            screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox)          
-            Move(Default_Objects[obj])
+            screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox) 
+            if Default_Objects[obj].Layer != "WallLayer":         
+                Move(Default_Objects[obj])
             if Default_Objects[obj].Layer != "WallLayer":
                 CollisionCheck(Default_Objects[obj])
 
