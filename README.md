@@ -1,7 +1,7 @@
 # Cat-Irritation-Game
 Our way to get an A.
 
-Cat-Irritation-Game is roguelike made by first grade students at Stockholm Sciense and Inovation School. 
+Cat-Irritation-Game is roguelike made on **PyGame** by first grade students at Stockholm Sciense and Inovation School. 
 
 ## 🚀 How to Run
 
