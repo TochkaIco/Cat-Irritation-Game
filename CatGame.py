@@ -38,7 +38,7 @@ WallLayer = []
 
 #}
 #Global Functions
-#DONT USE THE RAYCAST!!! IT IS LAGGY ASF RN!!!
+#DONT USE THE RAYCAST YET!!! IT IS DESPICABLE!!!
 def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
     direction = atan2(TargetY - OriginY, TargetX - OriginX)
     x = OriginX
@@ -46,9 +46,11 @@ def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
     Length = sqrt(pow(OriginX - TargetX,2) + pow(OriginY - TargetY,2))
     ray_length = 0
     debug_iterations = 0
+    xrate = -cos(radians(direction - 90))
+    yrate = sin(radians(direction - 90))
     while ray_length < Length:
-        x += 1 * -cos(radians(direction - 90))
-        y += 1 * sin(radians(direction - 90))
+        x += 1 * xrate
+        y += 1 * yrate
         for obj in range(len(CollisionLayers)):
             if pygame.Rect.collidepoint(CollisionLayers[obj].Hitbox, (x,y)):
                 return x,y
