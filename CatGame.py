@@ -31,15 +31,16 @@ LoadedScene = False
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
 def Move(obj):
-    obj.x += obj.xvelocity
-    obj.y += obj.yvelocity
+    obj.x += obj.xvelocity * DeltaTime
+    obj.y += obj.yvelocity * DeltaTime
+    obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
 #Classes
 class Player:
     Player_Class_Picture = Roman
     def __init__(self,x,y):
         #______ Adam Ohlsén
-        #Do you guys want to use a tuple instead of a seperate x and y?
+        self.WalkSpeed = 100
         #X
         self.x = x
         self.xvelocity = 0
@@ -54,11 +55,28 @@ class Player:
         #do last
         Default_Objects.append(self)
     
-    def Control_Player(obj):
+    def Control_Player(self):
         for event in PyEvents:
+            #-                                      -#
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
-                    pass
+                    self.yvelocity += -self.WalkSpeed
+                if event.key == pygame.K_s:
+                    self.yvelocity += self.WalkSpeed
+                if event.key == pygame.K_a:
+                    self.xvelocity += -self.WalkSpeed
+                if event.key == pygame.K_d:
+                    self.xvelocity += self.WalkSpeed
+            #-                                      -#
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_w:
+                    self.yvelocity -= -self.WalkSpeed
+                if event.key == pygame.K_s:
+                    self.yvelocity -= self.WalkSpeed
+                if event.key == pygame.K_a:
+                    self.xvelocity -= -self.WalkSpeed
+                if event.key == pygame.K_d:
+                    self.xvelocity -= self.WalkSpeed
         
 
 #Misc
@@ -79,10 +97,10 @@ while Running == True:
             LoadedScene = True
         #-
         
-
+        DefaultPlayer.Control_Player()
         for obj in range(len(Default_Objects)):
             Rotate(Default_Objects[obj])
-            screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox)
+            screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox)          
             Move(Default_Objects[obj])
 
     #______ Adam Ohlsén
