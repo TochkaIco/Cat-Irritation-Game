@@ -72,14 +72,4 @@ if os_name!="Windows" and os_name!="Linux":
 if os_name == "Windows":
     windows_setup()
 elif os_name == "Linux":
-    import distro
-    distro_name = distro.name()
-    if "Debian" in distro_name or "Ubuntu" in distro_name: # Verifying Linux distro type
-        distro_name = "Debian-Ubuntu"
-    elif "Fedora" in distro_name:
-        distro_name = "Fedora"
-    elif "Arch" in distro_name:
-        distro_name = "Arch"
-    else:
-        raise RuntimeError(f"Unsupported Linux distro: {distro_name}")
     linux_setup()
