@@ -43,13 +43,18 @@ def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
     direction = atan2(TargetY - OriginY, TargetX - OriginX)
     x = OriginX
     y = OriginY
-    Length = round(sqrt(pow(OriginX - TargetX,2) + pow(OriginY - TargetY,2)))
-    for ray_length in range(Length):
+    Length = sqrt(pow(OriginX - TargetX,2) + pow(OriginY - TargetY,2))
+    ray_length = 0
+    debug_iterations = 0
+    while ray_length < Length:
         x += 1 * -cos(radians(direction - 90))
         y += 1 * sin(radians(direction - 90))
         for obj in range(len(CollisionLayers)):
             if pygame.Rect.collidepoint(CollisionLayers[obj].Hitbox, (x,y)):
                 return x,y
+        ray_length += 5
+        debug_iterations += 1
+    print (debug_iterations)
     return None,None
 
 
@@ -63,18 +68,11 @@ def Move(obj):
     obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
 
-def GetExactCollidePoint(obj1,obj2):
-    #x,y = RayCast(obj1.x, obj1.y,obj2.x,obj2.y,CollisionLayer)
-    #return x,y
-    #__ Ok i was going to write code here but i realized i would make a functio
-    # That takes the exact information from another function and returns it
-    # to the buyer? Wtf? I just cut out the middleman because i was high when
-    #Doing the logic, i will del the function after you guys get a laugh at it.
-    pass
 def CollisionCheck(obj):
     for object in range(len(obj.InteractLayers)):
         if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
-            #x,y = RayCast(obj.x,obj.y,obj.InteractLayers[object].x,obj.InteractLayers[object].y, obj.InteractLayers
+            print (f"InteractLayers:{len(obj.InteractLayers)}")
+            x,y = RayCast(obj.x,obj.y,obj.InteractLayers[object].x,obj.InteractLayers[object].y, obj.InteractLayers)
             #DONT ACTIVATE THE RAYCAST YET!!
             pass
 
@@ -159,8 +157,7 @@ DefaultPlayer = Player(256,256)
 tempthing = 1024
 
 while Running == True:
-    tempthing -= 1
-    Wall(tempthing, 100)
+    #tempthing -= 1
     #screen = pygame.display.set_mode((tempthing,512),pygame.RESIZABLE)
     PyEvents = pygame.event.get()
     for event in PyEvents:
@@ -173,6 +170,7 @@ while Running == True:
     if Scene == "MainScene":
         if LoadedScene == False:
             print ("loading scene")
+            Wall(500, 100)
             LoadedScene = True
         #-
         
