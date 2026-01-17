@@ -32,6 +32,8 @@ Default_Objects = []
 Scene = "MainScene"
 LoadedScene = False
 
+Extra_Pixel_Margin = 2
+
 #Layers__--__
 PlayerLayer = []
 WallLayer = []
@@ -74,12 +76,22 @@ def CollisionCheck(obj):
     for object in range(len(obj.InteractLayers)):
         if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
             print (f"InteractLayers:{len(obj.InteractLayers)}")
-            x,y = RayCast(obj.x,obj.y,obj.InteractLayers[object].x,obj.InteractLayers[object].y, obj.InteractLayers)
-            #DONT ACTIVATE THE RAYCAST YET!!
+            CorrectXPosition(obj,obj.InteractLayers[object])
             pass
 
 
 def CorrectXPosition(obj1, obj2):
+    width1 = obj1.OriginPic.get_width()
+    height1 = obj1.OriginPic.get_height()
+    width2 = obj2.OriginPic.get_width()
+    height2 = obj2.OriginPic.get_height()
+    XAdjustment = width2 / 2 + width1 / 2
+    YAdjustment = height2 / 2 + height1 / 2
+
+    if obj1.x > obj2.x and obj2.y + YAdjustment - Extra_Pixel_Margin * 5 > obj1.y > obj2.y - YAdjustment + Extra_Pixel_Margin * 5:
+        obj1.x = obj2.x + XAdjustment
+    if obj1.x < obj2.x and obj2.y + YAdjustment - Extra_Pixel_Margin * 5 > obj1.y > obj2.y - YAdjustment + Extra_Pixel_Margin * 5:
+        obj1.x = obj2.x - XAdjustment
     pass
 
 def CorrectYPosition(obj1, obj2):
