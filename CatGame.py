@@ -6,16 +6,29 @@
 
 #imports
 import pygame
-from math import atan2,cos,sin,radians,sqrt,pow #atan 2 hehehehehaw, grrrr, heugheugh
+#map generation import
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import CubicSpline
+from matplotlib.path import Path
 
-print(f"pygame version is: {pygame.version.ver}")
 ##pygame necessities
 #{
 #basics --
 pygame.init()
-screen = pygame.display.set_mode((1024,512),pygame.RESIZABLE)
+screen = pygame.display.set_mode((1920,1080),pygame.RESIZABLE)
+pygame.display.set_caption("Cat-Irritation-Game")
 clock = pygame.time.Clock()
 DeltaTime = 0.1
+
+#bg_loading
+screen.fill((0, 0, 0))
+font = pygame.font.Font(None, 74)
+loading_text = font.render("Loading...", True, (255, 255, 255))
+text_rect = loading_text.get_rect(center=(1920/2, 1080/2))
+screen.blit(loading_text, text_rect)
+pygame.display.flip()
+
 #sprites --
 # cm- Roman you will be a placeholder for everything
 Roman = pygame.image.load("Images/Roman-Verde.png").convert_alpha()
@@ -32,64 +45,51 @@ Default_Objects = []
 Scene = "MainScene"
 LoadedScene = False
 
-Extra_Pixel_Margin = 2
-
 #Layers__--__
 PlayerLayer = []
 WallLayer = []
 
+#Camera
+CameraX = 0
+CameraY = 0
+
 #}
 #Global Functions
-#DONT USE THE RAYCAST YET!!! IT IS DESPICABLE!!!
 def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
-    direction = atan2(TargetY - OriginY, TargetX - OriginX)
-    x = OriginX
-    y = OriginY
-    Length = sqrt(pow(OriginX - TargetX,2) + pow(OriginY - TargetY,2))
-    ray_length = 0
-    debug_iterations = 0
-    xrate = -cos(radians(direction - 90))
-    yrate = sin(radians(direction - 90))
-    while ray_length < Length:
-        x += 1 * xrate
-        y += 1 * yrate
-        for obj in range(len(CollisionLayers)):
-            if pygame.Rect.collidepoint(CollisionLayers[obj].Hitbox, (x,y)):
-                return x,y
-        ray_length += 5
-        debug_iterations += 1
-    print (debug_iterations)
-    return None,None
-
 
     pass
 
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
+def Move(obj):
+    obj.x += obj.xvelocity * DeltaTime
+    obj.y += obj.yvelocity * DeltaTime
+    obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
 
-def MoveAndHandleCollisionCheck(obj):
-    amount_of_collisions = 0
-    
-    obj.Hitbox.x += obj.xvelocity * DeltaTime
-    for object in range(len(obj.InteractLayers)):
-        if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
-            amount_of_collisions += 1
-            if obj.xvelocity > 0:
-                obj.Hitbox.right = obj.InteractLayers[object].Hitbox.left
-            if obj.xvelocity < 0:
-                obj.Hitbox.left = obj.InteractLayers[object].Hitbox.right
-            obj.x = obj.Hitbox.center[0]
-    obj.Hitbox.y += obj.yvelocity * DeltaTime
-    for object in range(len(obj.InteractLayers)):
-        if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
-            amount_of_collisions += 1
-            if obj.yvelocity > 0:
-                obj.Hitbox.bottom = obj.InteractLayers[object].Hitbox.top
-            if obj.yvelocity < 0:
-                obj.Hitbox.top = obj.InteractLayers[object].Hitbox.bottom
-            obj.y = obj.Hitbox.center[1]
-    
+def GetExactCollidePoint(obj1,obj2):
+    pass
+def CollisionCheck(obj):
+    if obj.Layer == "PlayerLayer":
+        for object in range(len(WallLayer)):
+            if obj.Hitbox.colliderect(WallLayer[object].Hitbox):
+                pass
+
+#Managing camera to hold the player always in the middle
+def UpdateCamera(target, camera_smoothness=0.1):
+    global CameraX, CameraY
+
+    target_x = target.x - 1920/2
+    target_y = target.y - 1080/2
+
+    CameraX += (target_x - CameraX) * camera_smoothness
+    CameraY += (target_y - CameraY) * camera_smoothness
+
+def CorrectXPosition(obj1, obj2):
+    pass
+
+def CorrectYPosition(obj1, obj2):
+    pass
 
 #Classes
 class Player:
@@ -109,7 +109,6 @@ class Player:
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
         self.PicAngle = 0
         self.Layer = "PlayerLayer"
-        self.InteractLayers = WallLayer
         
         #Put all __init__ logic before the append
         Default_Objects.append(self)
@@ -159,41 +158,96 @@ class Wall:
     
 #}
 
+#BG_Gen
+def Generate_Island_BG():
+    SIZE = 2048
+
+    #Spaming to the system, to prevent "No response"
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
+    #Dots Generation
+    np.random.seed()
+    n = 15
+    angles = np.linspace(0, 2*np.pi, n, endpoint=False)
+    points = []
+    for a in angles:
+        r = 0.8 + (np.random.rand() - 0.5) * 0.25
+        points.append([r * np.cos(a), r * np.sin(a)])
+    points = np.array(points)
+
+    #Making the border smooth by generating 150 extra points
+    pts_closed = np.vstack([points, points[0]])
+    t = np.arange(len(pts_closed))
+    t_smooth = np.linspace(0, len(points)-1, 150)
+    cs_x = CubicSpline(t, pts_closed[:, 0], bc_type='periodic')
+    cs_y = CubicSpline(t, pts_closed[:, 1], bc_type='periodic')
+    sx, sy = cs_x(t_smooth), cs_y(t_smooth)
+
+    #Filling an island
+    px = ((sx + 1) * SIZE / 2).astype(int)
+    py = ((sy + 1) * SIZE / 2).astype(int)
+    path = Path(np.column_stack([px, py]))
+    y, x = np.mgrid[0:SIZE, 0:SIZE]
+    mask = path.contains_points(np.column_stack([x.ravel(), y.ravel()]))
+    mask = mask.reshape(SIZE, SIZE)
+
+    #Creating an image
+    img = np.zeros((SIZE, SIZE, 3), dtype=np.uint8)
+    img[~mask] = [25, 76, 204]     #Water  (blue)
+    img[mask] = [25, 153, 51]      #Ground (green)
+
+    #Converting to an PyGame Surface
+    img = np.transpose(img, (1, 0, 2))
+    return pygame.surfarray.make_surface(img)
+
+#Generating BG
+IslandBackground = Generate_Island_BG()
+
 
 #Misc
-DefaultPlayer = Player(256,256)
+DefaultPlayer = Player(512,512)
 tempthing = 1024
 
 while Running == True:
-    #tempthing -= 1
+    tempthing -= 1
+
+    ##! DELETE AFTER! In a minute there will be 3600 walls!
+    #Wall(tempthing, 100)
+
     #screen = pygame.display.set_mode((tempthing,512),pygame.RESIZABLE)
     PyEvents = pygame.event.get()
     for event in PyEvents:
         if event.type == pygame.QUIT:
             Running = False
-    screen.fill((255,255,255))
     #______ Adam Ohlsén
     #don't put logic inside of running before this point unless you are certain
     #Scenes
     if Scene == "MainScene":
         if LoadedScene == False:
             print ("loading scene")
-            Wall(500, 100)
             LoadedScene = True
         #-
         
         DefaultPlayer.Control_Player()
-        for obj in range(len(Default_Objects)):
-            Rotate(Default_Objects[obj])
-            screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox) 
-            if Default_Objects[obj].Layer != "WallLayer":
-                MoveAndHandleCollisionCheck(Default_Objects[obj])
+        UpdateCamera(DefaultPlayer, camera_smoothness=0.15)
+        screen.blit(IslandBackground, (-CameraX, -CameraY))
+        for obj in Default_Objects:
+            Rotate(obj)
+            screen_x = obj.x - CameraX
+            screen_y = obj.y - CameraY
+            screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x, screen_y))) 
+            if obj.Layer != "WallLayer":         
+                Move(obj)
+            if obj.Layer != "WallLayer":
+                CollisionCheck(obj)
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
     DeltaTime = clock.tick(60) / 1000
     DeltaTime = max(0.001, min(0.1, DeltaTime))
-    print("meow")
     pygame.display.flip()
 
 
