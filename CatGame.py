@@ -72,12 +72,30 @@ def Move(obj):
     obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
 
-def CollisionCheck(obj):
+def MoveAndHandleCollisionCheck(obj):
+    amount_of_collisions = 0
+    
+    obj.x += obj.xvelocity * DeltaTime
     for object in range(len(obj.InteractLayers)):
         if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
-            print (f"InteractLayers:{len(obj.InteractLayers)}")
-            CorrectXPosition(obj,obj.InteractLayers[object])
-            pass
+            amount_of_collisions += 1
+            if obj.xvelocity > 0:
+                obj.Hitbox.right = obj.InteractLayers[object].Hitbox.left
+            if obj.xvelocity < 0:
+                obj.Hitbox.left = obj.InteractLayers[object].Hitbox.right
+            obj.x = obj.Hitbox.center[0]
+    obj.y += obj.yvelocity * DeltaTime
+    for object in range(len(obj.InteractLayers)):
+        if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
+            amount_of_collisions += 1
+            if obj.yvelocity > 0:
+                obj.Hitbox.bottom = obj.InteractLayers[object].Hitbox.top
+            if obj.yvelocity < 0:
+                obj.Hitbox.top = obj.InteractLayers[object].Hitbox.bottom
+            obj.y = obj.Hitbox.center[1]
+    
+    if amount_of_collisions < 1:
+        obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
 
 def CorrectXPosition(obj1, obj2):
@@ -88,9 +106,10 @@ def CorrectXPosition(obj1, obj2):
     XAdjustment = width2 / 2 + width1 / 2
     YAdjustment = height2 / 2 + height1 / 2
 
-    if obj1.x > obj2.x and obj2.y + YAdjustment - Extra_Pixel_Margin * 5 > obj1.y > obj2.y - YAdjustment + Extra_Pixel_Margin * 5:
+    #Fixing proper collisions later
+    if obj1.x > obj2.x:
         obj1.x = obj2.x + XAdjustment
-    if obj1.x < obj2.x and obj2.y + YAdjustment - Extra_Pixel_Margin * 5 > obj1.y > obj2.y - YAdjustment + Extra_Pixel_Margin * 5:
+    if obj1.x < obj2.x:
         obj1.x = obj2.x - XAdjustment
     pass
 
@@ -192,10 +211,8 @@ while Running == True:
         for obj in range(len(Default_Objects)):
             Rotate(Default_Objects[obj])
             screen.blit(Default_Objects[obj].pic, Default_Objects[obj].Hitbox) 
-            if Default_Objects[obj].Layer != "WallLayer":         
-                Move(Default_Objects[obj])
             if Default_Objects[obj].Layer != "WallLayer":
-                CollisionCheck(Default_Objects[obj])
+                MoveAndHandleCollisionCheck(Default_Objects[obj])
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
