@@ -66,16 +66,12 @@ def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
 
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
-def Move(obj):
-    obj.x += obj.xvelocity * DeltaTime
-    obj.y += obj.yvelocity * DeltaTime
-    obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
 
 def MoveAndHandleCollisionCheck(obj):
     amount_of_collisions = 0
     
-    obj.x += obj.xvelocity * DeltaTime
+    obj.Hitbox.x += obj.xvelocity * DeltaTime
     for object in range(len(obj.InteractLayers)):
         if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
             amount_of_collisions += 1
@@ -84,7 +80,7 @@ def MoveAndHandleCollisionCheck(obj):
             if obj.xvelocity < 0:
                 obj.Hitbox.left = obj.InteractLayers[object].Hitbox.right
             obj.x = obj.Hitbox.center[0]
-    obj.y += obj.yvelocity * DeltaTime
+    obj.Hitbox.y += obj.yvelocity * DeltaTime
     for object in range(len(obj.InteractLayers)):
         if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
             amount_of_collisions += 1
@@ -94,8 +90,7 @@ def MoveAndHandleCollisionCheck(obj):
                 obj.Hitbox.top = obj.InteractLayers[object].Hitbox.bottom
             obj.y = obj.Hitbox.center[1]
     
-    if amount_of_collisions < 1:
-        obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
+
 
 
 def CorrectXPosition(obj1, obj2):
