@@ -91,26 +91,6 @@ def MoveAndHandleCollisionCheck(obj):
             obj.y = obj.Hitbox.center[1]
     
 
-
-
-def CorrectXPosition(obj1, obj2):
-    width1 = obj1.OriginPic.get_width()
-    height1 = obj1.OriginPic.get_height()
-    width2 = obj2.OriginPic.get_width()
-    height2 = obj2.OriginPic.get_height()
-    XAdjustment = width2 / 2 + width1 / 2
-    YAdjustment = height2 / 2 + height1 / 2
-
-    #Fixing proper collisions later
-    if obj1.x > obj2.x:
-        obj1.x = obj2.x + XAdjustment
-    if obj1.x < obj2.x:
-        obj1.x = obj2.x - XAdjustment
-    pass
-
-def CorrectYPosition(obj1, obj2):
-    pass
-
 #Classes
 class Player:
     Player_Class_Picture = Roman
