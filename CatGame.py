@@ -6,6 +6,7 @@
 
 #imports
 import pygame
+import math
 #map generation import
 import numpy as np
 import matplotlib.pyplot as plt
@@ -56,14 +57,61 @@ CameraY = 0
 #}
 #Global Functions
 def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
+    direction = atan2(TargetY - OriginY, TargetX - OriginX)
+    x = OriginX
+    y = OriginY
+    Length = sqrt(pow(OriginX - TargetX,2) + pow(OriginY - TargetY,2))
+    ray_length = 0
+    debug_iterations = 0
+    xrate = -cos(radians(direction - 90))
+    yrate = sin(radians(direction - 90))
+    while ray_length < Length:
+        x += 1 * xrate
+        y += 1 * yrate
+        for obj in range(len(CollisionLayers)):
+            if pygame.Rect.collidepoint(CollisionLayers[obj].Hitbox, (x,y)):
+                return x,y
+        ray_length += 5
+        debug_iterations += 1
+    print (debug_iterations)
+    return None,None
 
     pass
+
+def MoveAndHandleCollisionCheck(obj):
+    amount_of_collisions = 0
+    
+    obj.Hitbox.x += obj.xvelocity * DeltaTime
+    for object in range(len(obj.InteractLayers)):
+        if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
+            amount_of_collisions += 1
+            if obj.xvelocity > 0:
+                obj.Hitbox.right = obj.InteractLayers[object].Hitbox.left
+            if obj.xvelocity < 0:
+                obj.Hitbox.left = obj.InteractLayers[object].Hitbox.right
+            obj.x = obj.Hitbox.center[0]
+    obj.Hitbox.y += obj.yvelocity * DeltaTime
+    for object in range(len(obj.InteractLayers)):
+        if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
+            amount_of_collisions += 1
+            if obj.yvelocity > 0:
+                obj.Hitbox.bottom = obj.InteractLayers[object].Hitbox.top
+            if obj.yvelocity < 0:
+                obj.Hitbox.top = obj.InteractLayers[object].Hitbox.bottom
+            obj.y = obj.Hitbox.center[1]
 
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
 def Move(obj):
-    obj.x += obj.xvelocity * DeltaTime
-    obj.y += obj.yvelocity * DeltaTime
+    #Speed normalization for diagonal movement
+    velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
+    
+    if velocity_magnitute > 0:
+        normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
+        normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
+        obj.x += normalized_x * DeltaTime
+        obj.y += normalized_y * DeltaTime
+
     obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
 
@@ -96,7 +144,7 @@ class Player:
     Player_Class_Picture = Roman
     def __init__(self,x,y):
         #______ Adam Ohlsén
-        self.WalkSpeed = 100
+        self.WalkSpeed = 200
         #X
         self.x = x
         self.xvelocity = 0
@@ -109,6 +157,7 @@ class Player:
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
         self.PicAngle = 0
         self.Layer = "PlayerLayer"
+        self.InteractLayers = WallLayer
         
         #Put all __init__ logic before the append
         Default_Objects.append(self)
@@ -248,6 +297,8 @@ while Running == True:
     #don't put logic past this point unless you are certain
     DeltaTime = clock.tick(60) / 1000
     DeltaTime = max(0.001, min(0.1, DeltaTime))
+    #Meow is back
+    print("meow")
     pygame.display.flip()
 
 
