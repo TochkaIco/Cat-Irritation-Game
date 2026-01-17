@@ -1,7 +1,11 @@
-# Cat-Irritation-Game
-Our way to get an A.
+# 🐱 Cat Irritation Game
+Project Goal: Creating a high-performance, procedurally generated Roguelike using pure Python and PyGame.
 
-Cat-Irritation-Game is roguelike made on **PyGame** by first grade students at Stockholm Sciense and Inovation School. 
+
+## 🌟 Key Technical Features
+Secret at the moment
+
+---
 
 ## 🚀 How to Run
 
@@ -39,6 +43,9 @@ Cat-Irritation-Game/
 
 ```bash
 pygame==2.6.1
+scipy==1.17.0
+matplotlib==3.10.8
+numpy==2.4.1
 ```
 
 
