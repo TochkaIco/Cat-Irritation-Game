@@ -82,31 +82,41 @@ def MoveAndHandleCollisionCheck(obj):
     amount_of_collisions = 0
     velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
     
-    
-        
-        
+    #Checking X collisions
     if velocity_magnitute > 0:
         normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
         obj.Hitbox.x += normalized_x * DeltaTime
-    for object in range(len(obj.InteractLayers)):
-        if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
-            amount_of_collisions += 1
-            if obj.xvelocity > 0:
-                obj.Hitbox.right = obj.InteractLayers[object].Hitbox.left
-            if obj.xvelocity < 0:
-                obj.Hitbox.left = obj.InteractLayers[object].Hitbox.right
-            obj.x = obj.Hitbox.center[0]
+    #Checks if it's even moving
+    if obj.xvelocity != 0:
+        for object in range(len(obj.InteractLayers)):
+            #Checking if it's a slope
+            if obj.InteractLayers[object].PicAngle == 0:
+                if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
+                    amount_of_collisions += 1
+                    if obj.xvelocity > 0:
+                        obj.Hitbox.right = obj.InteractLayers[object].Hitbox.left
+                    if obj.xvelocity < 0:
+                        obj.Hitbox.left = obj.InteractLayers[object].Hitbox.right
+                    obj.x = obj.Hitbox.center[0]
+                else:
+                    pass
+    
+    #Checking Y collisions
     if velocity_magnitute > 0:  
         normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
         obj.Hitbox.y += normalized_y * DeltaTime
-    for object in range(len(obj.InteractLayers)):
-        if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
-            amount_of_collisions += 1
-            if obj.yvelocity > 0:
-                obj.Hitbox.bottom = obj.InteractLayers[object].Hitbox.top
-            if obj.yvelocity < 0:
-                obj.Hitbox.top = obj.InteractLayers[object].Hitbox.bottom
-            obj.y = obj.Hitbox.center[1]
+    if obj.yvelocity != 0:
+        for object in range(len(obj.InteractLayers)):
+            if obj.InteractLayers[object].PicAngle == 0:
+                if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
+                    amount_of_collisions += 1
+                    if obj.yvelocity > 0:
+                        obj.Hitbox.bottom = obj.InteractLayers[object].Hitbox.top
+                    if obj.yvelocity < 0:
+                        obj.Hitbox.top = obj.InteractLayers[object].Hitbox.bottom
+                    obj.y = obj.Hitbox.center[1]
+                else:
+                    pass
 
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
