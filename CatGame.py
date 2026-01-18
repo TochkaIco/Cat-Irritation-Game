@@ -104,22 +104,22 @@ def MoveAndHandleCollisionCheck(obj):
                 #Slopped objects x collision logic
                 #______________________________________________________________________________
                 #top
-                if obj.Hitbox.y < object2.Hitbox.y - object2.Hitbox.height / 2 and obj.Hitbox.x > object2.Hitbox.x - object2.Hitbox.width / 2:
+                if obj.Hitbox.y < object2.Hitbox.y - object2.height / 2 and obj.Hitbox.x > object2.Hitbox.x - object2.width / 2:
                     if obj.Hitbox.colliderect(object2.Hitbox):
-                        O_height = object2.Hitbox.height / 2
+                        O_height = object2.height / 2
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                         #tan v
                         Ex_height = dist * math.radians(object2.PicAngle) 
                         obj.Hitbox.centery = object2.Hitbox.y - O_height - Ex_height
                         obj.y = obj.Hitbox.center[1]
                 #bottom
-                if obj.Hitbox.y > object2.Hitbox.y + object2.Hitbox.height / 2 and obj.Hitbox.x < object2.Hitbox.x + object2.Hitbox.width / 2:
+                if obj.Hitbox.y > object2.Hitbox.y + object2.height / 2 and obj.Hitbox.x < object2.Hitbox.x + object2.width / 2:
                     if obj.Hitbox.colliderect(object2.Hitbox):
-                        O_height = object2.Hitbox.height / 2
+                        O_height = object2.height / 2
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                         #tan v
                         Ex_height = dist * -math.radians(object2.PicAngle) 
-                        obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + object2.Hitbox.height
+                        obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + object2.height
                         obj.y = obj.Hitbox.center[1]
                 #______________________________________________________________________________
 
@@ -142,10 +142,10 @@ def MoveAndHandleCollisionCheck(obj):
                 #slopped objects, y collision logic
                 #______________________________________________________________________________
                 #top
-                if obj.yvelocity > 0 and obj.Hitbox.y < object2.Hitbox.y - object2.Hitbox.height / 2:
-                    if obj.Hitbox.x > object2.Hitbox.x - object2.Hitbox.width / 2:
+                if obj.yvelocity > 0 and obj.Hitbox.y < object2.Hitbox.y - object2.height / 2:
+                    if obj.Hitbox.x > object2.Hitbox.x - object2.width / 2:
                         if obj.Hitbox.colliderect(object2.Hitbox):
-                            O_height = object2.Hitbox.height / 2
+                            O_height = object2.height / 2
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                             #tan v
                             Ex_height = dist * math.radians(object2.PicAngle) 
@@ -153,30 +153,30 @@ def MoveAndHandleCollisionCheck(obj):
                             obj.y = obj.Hitbox.center[1]
                     else:
                         if obj.Hitbox.colliderect(object2.Hitbox):
-                            O_height = object2.Hitbox.height / 2
-                            dist = -object2.Hitbox.width / 2
+                            O_height = object2.height / 2
+                            dist = -object2.width / 2
                             #tan v
                             Ex_height = dist * math.radians(object2.PicAngle) 
                             obj.Hitbox.centery = object2.Hitbox.y - O_height - Ex_height
                             obj.y = obj.Hitbox.center[1]
                         
                 #bottom
-                if obj.yvelocity < 0 and obj.Hitbox.y > object2.Hitbox.y + object2.Hitbox.height / 2: 
-                    if obj.Hitbox.x < object2.Hitbox.x + object2.Hitbox.width / 2:
+                if obj.yvelocity < 0 and obj.Hitbox.y > object2.Hitbox.y + object2.height / 2: 
+                    if obj.Hitbox.x < object2.Hitbox.x + object2.width / 2:
                         if obj.Hitbox.colliderect(object2.Hitbox):
-                            O_height = object2.Hitbox.height / 2
+                            O_height = object2.height / 2
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                             #tan v
                             Ex_height = dist * -math.radians(object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + obj.Hitbox.height
+                            obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + obj.height
                             obj.y = obj.Hitbox.center[1]
                     else:
                         if obj.Hitbox.colliderect(object2.Hitbox):
-                            O_height = object2.Hitbox.height / 2
-                            dist = object2.Hitbox.width
+                            O_height = object2.height / 2
+                            dist = object2.width
                             #tan v
                             Ex_height = dist * -math.radians(object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + obj.Hitbox.height
+                            obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + obj.height
                             obj.y = obj.Hitbox.center[1]
 
                 #_______________________________________________________________________________
@@ -209,6 +209,8 @@ class Player:
         self.OriginPic = Player.Player_Class_Picture
         self.pic = self.OriginPic
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+        self.height = self.OriginPic.get_height()
+        self.width = self.OriginPic.get_width()
         self.PicAngle = 0
         self.Layer = "PlayerLayer"
         self.InteractLayers = WallLayer
@@ -250,9 +252,17 @@ class Wall:
         #Misc
         self.OriginPic = Wall.Wall_Class_Picture
         self.pic = self.OriginPic
-        self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
         self.PicAngle = angle
         self.Layer = "WallLayer"
+        self.height = self.OriginPic.get_height()
+        self.width = self.OriginPic.get_width()
+        if self.PicAngle != 0:
+            Bonus_Y_Size = (self.OriginPic.get_width() / 2) * math.radians(self.PicAngle)
+            Bonus_X_Size = (self.OriginPic.get_height() / 2) * math.radians(self.PicAngle)
+            self.Hitbox = pygame.Rect(x,y, self.OriginPic.get_width() - Bonus_X_Size, self.OriginPic.get_height() - Bonus_Y_Size)
+        else:
+            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+
 
         Default_Objects.append(self)
         WallLayer.append(self)
@@ -315,7 +325,7 @@ IslandBackground = Generate_Island_BG()
 DefaultPlayer = Player(512,512)
 tempthing = 1024
 #DONT ANGLE THE WALLS YET! I SWEAR I WILL FIX THE GOOFINESS!!! JUST PUT IT AT 0!!!
-Wall(1024, 500, 0)
+Wall(1024, 500, -5)
 
 while Running == True:
     tempthing -= 1
