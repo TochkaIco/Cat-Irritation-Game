@@ -80,8 +80,14 @@ def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
 
 def MoveAndHandleCollisionCheck(obj):
     amount_of_collisions = 0
+    velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
     
-    obj.Hitbox.x += obj.xvelocity * DeltaTime
+    
+        
+        
+    if velocity_magnitute > 0:
+        normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
+        obj.Hitbox.x += normalized_x * DeltaTime
     for object in range(len(obj.InteractLayers)):
         if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
             amount_of_collisions += 1
@@ -90,7 +96,9 @@ def MoveAndHandleCollisionCheck(obj):
             if obj.xvelocity < 0:
                 obj.Hitbox.left = obj.InteractLayers[object].Hitbox.right
             obj.x = obj.Hitbox.center[0]
-    obj.Hitbox.y += obj.yvelocity * DeltaTime
+    if velocity_magnitute > 0:  
+        normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
+        obj.Hitbox.y += normalized_y * DeltaTime
     for object in range(len(obj.InteractLayers)):
         if obj.Hitbox.colliderect(obj.InteractLayers[object].Hitbox):
             amount_of_collisions += 1
@@ -102,36 +110,21 @@ def MoveAndHandleCollisionCheck(obj):
 
 def Rotate(obj):
     obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
-def Move(obj):
-    #Speed normalization for diagonal movement
-    velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
-    
-    if velocity_magnitute > 0:
-        normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
-        normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
-        obj.x += normalized_x * DeltaTime
-        obj.y += normalized_y * DeltaTime
 
-    obj.Hitbox = obj.OriginPic.get_rect(center= (obj.x, obj.y))
 
 
 def GetExactCollidePoint(obj1,obj2):
     pass
-def CollisionCheck(obj):
-    if obj.Layer == "PlayerLayer":
-        for object in range(len(WallLayer)):
-            if obj.Hitbox.colliderect(WallLayer[object].Hitbox):
-                pass
 
 #Managing camera to hold the player always in the middle
 def UpdateCamera(target, camera_smoothness=0.1):
     global CameraX, CameraY
 
-    target_x = target.x - 1920/2
-    target_y = target.y - 1080/2
+    target_x = target.Hitbox.x - 1920/2
+    target_y = target.Hitbox.y - 1080/2
 
-    CameraX += (target_x - CameraX) * camera_smoothness
-    CameraY += (target_y - CameraY) * camera_smoothness
+    CameraX += (target_x - CameraX)
+    CameraY += (target_y - CameraY)
 
 def CorrectXPosition(obj1, obj2):
     pass
@@ -265,7 +258,7 @@ while Running == True:
 
     ##! DELETE AFTER! In a minute there will be 3600 walls!
     #Wall(tempthing, 100)
-
+    Wall(1024, 500)
     #screen = pygame.display.set_mode((tempthing,512),pygame.RESIZABLE)
     PyEvents = pygame.event.get()
     for event in PyEvents:
@@ -285,13 +278,11 @@ while Running == True:
         screen.blit(IslandBackground, (-CameraX, -CameraY))
         for obj in Default_Objects:
             Rotate(obj)
-            screen_x = obj.x - CameraX
-            screen_y = obj.y - CameraY
-            screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x, screen_y))) 
+            screen_x = obj.Hitbox.x - CameraX
+            screen_y = obj.Hitbox.y - CameraY
+            screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y))) 
             if obj.Layer != "WallLayer":         
-                Move(obj)
-            if obj.Layer != "WallLayer":
-                CollisionCheck(obj)
+                MoveAndHandleCollisionCheck(obj)
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
