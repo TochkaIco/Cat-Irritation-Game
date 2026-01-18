@@ -57,14 +57,14 @@ CameraY = 0
 #}
 #Global Functions
 def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
-    direction = atan2(TargetY - OriginY, TargetX - OriginX)
+    direction = math.atan2(TargetY - OriginY, TargetX - OriginX)
     x = OriginX
     y = OriginY
-    Length = sqrt(pow(OriginX - TargetX,2) + pow(OriginY - TargetY,2))
+    Length = math.sqrt(pow(OriginX - TargetX,2) + pow(OriginY - TargetY,2))
     ray_length = 0
     debug_iterations = 0
-    xrate = -cos(radians(direction - 90))
-    yrate = sin(radians(direction - 90))
+    xrate = -math.cos(math.radians(direction - 90))
+    yrate = math.sin(math.radians(direction - 90))
     while ray_length < Length:
         x += 1 * xrate
         y += 1 * yrate
