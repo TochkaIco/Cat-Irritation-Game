@@ -41,7 +41,7 @@ def windows_setup():
 
         print("Ensuring Python is installed...")
         if not command_exists("python"):
-            subprocess.run(["winget", "install", "--id", "Python.Python.3.14", "-e", "--source", "winget", "--silent"],
+            subprocess.run(["winget", "install", "--id", "Python.Python.3.13", "-e", "--source", "winget", "--silent"],
                        check=True)
     except FileNotFoundError:
         logger.error("File not found", exc_info=True)
