@@ -168,7 +168,7 @@ def MoveAndHandleCollisionCheck(obj):
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                             #tan v
                             Ex_height = dist * -math.radians(object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + obj.height
+                            obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
                             obj.y = obj.Hitbox.center[1]
                     else:
                         if obj.Hitbox.colliderect(object2.Hitbox):
@@ -176,7 +176,7 @@ def MoveAndHandleCollisionCheck(obj):
                             dist = object2.width
                             #tan v
                             Ex_height = dist * -math.radians(object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + obj.height
+                            obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
                             obj.y = obj.Hitbox.center[1]
 
                 #_______________________________________________________________________________
@@ -255,7 +255,11 @@ class Wall:
         self.PicAngle = angle
         self.Layer = "WallLayer"
         self.height = self.OriginPic.get_height()
+        self.height = self.height
+        print (f"height: {self.height}")
         self.width = self.OriginPic.get_width()
+        self.width = self.width
+        print (f"width: {self.width}")
         if self.PicAngle != 0:
             Bonus_Y_Size = (self.OriginPic.get_width() / 2) * math.radians(self.PicAngle)
             Bonus_X_Size = (self.OriginPic.get_height() / 2) * math.radians(self.PicAngle)
