@@ -104,7 +104,7 @@ def MoveAndHandleCollisionCheck(obj):
                 #Slopped objects x collision logic
                 #______________________________________________________________________________
                 #top
-                if obj.Hitbox.y < object2.Hitbox.y - object2.height / 2 and obj.Hitbox.x > object2.Hitbox.x - object2.width / 2:
+                if obj.Hitbox.centery < object2.Hitbox.centery - object2.height / 2 and obj.Hitbox.centerx > object2.Hitbox.centerx - object2.width / 2:
                     if obj.Hitbox.colliderect(object2.Hitbox):
                         O_height = object2.height / 2
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
@@ -127,7 +127,7 @@ def MoveAndHandleCollisionCheck(obj):
     #Checking Y collisions
     if velocity_magnitute > 0:  
         normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
-        obj.Hitbox.y += normalized_y * DeltaTime
+        obj.Hitbox.centery += normalized_y * DeltaTime
     if obj.yvelocity != 0:
         for object2 in obj.InteractLayers:
             if object2.PicAngle == 0:
@@ -142,8 +142,8 @@ def MoveAndHandleCollisionCheck(obj):
                 #slopped objects, y collision logic
                 #______________________________________________________________________________
                 #top
-                if obj.yvelocity > 0 and obj.Hitbox.y < object2.Hitbox.y - object2.height / 2:
-                    if obj.Hitbox.x > object2.Hitbox.x - object2.width / 2:
+                if obj.yvelocity > 0 and obj.Hitbox.centery < object2.Hitbox.centery - object2.height / 2:
+                    if obj.Hitbox.centerx > object2.Hitbox.centerx - object2.width / 2:
                         if obj.Hitbox.colliderect(object2.Hitbox):
                             O_height = object2.height / 2
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
