@@ -110,7 +110,7 @@ def MoveAndHandleCollisionCheck(obj):
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                         #tan v
                         Ex_height = dist * math.radians(object2.PicAngle) 
-                        obj.Hitbox.centery = object2.Hitbox.y - O_height - Ex_height
+                        obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
                         obj.y = obj.Hitbox.center[1]
                 #bottom
                 if obj.Hitbox.y > object2.Hitbox.y + object2.height / 2 and obj.Hitbox.x < object2.Hitbox.x + object2.width / 2:
@@ -119,7 +119,7 @@ def MoveAndHandleCollisionCheck(obj):
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                         #tan v
                         Ex_height = dist * -math.radians(object2.PicAngle) 
-                        obj.Hitbox.centery = object2.Hitbox.y + O_height + Ex_height + object2.height
+                        obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
                         obj.y = obj.Hitbox.center[1]
                 #______________________________________________________________________________
 
@@ -149,7 +149,7 @@ def MoveAndHandleCollisionCheck(obj):
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                             #tan v
                             Ex_height = dist * math.radians(object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.y - O_height - Ex_height
+                            obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
                             obj.y = obj.Hitbox.center[1]
                     else:
                         if obj.Hitbox.colliderect(object2.Hitbox):
@@ -157,12 +157,12 @@ def MoveAndHandleCollisionCheck(obj):
                             dist = -object2.width / 2
                             #tan v
                             Ex_height = dist * math.radians(object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.y - O_height - Ex_height
+                            obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
                             obj.y = obj.Hitbox.center[1]
                         
                 #bottom
-                if obj.yvelocity < 0 and obj.Hitbox.y > object2.Hitbox.y + object2.height / 2: 
-                    if obj.Hitbox.x < object2.Hitbox.x + object2.width / 2:
+                if obj.yvelocity < 0 and obj.Hitbox.centery > object2.Hitbox.centery + object2.height / 2: 
+                    if obj.Hitbox.centerx < object2.Hitbox.centerx + object2.width / 2:
                         if obj.Hitbox.colliderect(object2.Hitbox):
                             O_height = object2.height / 2
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
@@ -195,7 +195,7 @@ def UpdateCamera(target, camera_smoothness=0.1):
 
 #Classes
 class Player:
-    Player_Class_Picture = Roman
+    Player_Class_Picture = CatGirl
     def __init__(self,x,y):
         #______ Adam Ohlsén
         self.WalkSpeed = 200
@@ -357,15 +357,15 @@ while Running == True:
         for obj in Default_Objects:
             Rotate(obj)
             
-            screen_x = obj.Hitbox.x - CameraX
-            screen_y = obj.Hitbox.y - CameraY
+            screen_x = obj.Hitbox.centerx - CameraX
+            screen_y = obj.Hitbox.centery - CameraY
             #I think the camera messes and doesn't give accurate positionssss, fuuuuuuck my sussy baka lifeeee!
             screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y))) 
             if obj.Layer != "WallLayer":         
                 MoveAndHandleCollisionCheck(obj)
             #Pygame Drawing for debug purposes
             pygame.draw.rect(screen, (0,0,255),obj.Hitbox)
-            pygame.draw.circle(screen, (0,255,0), obj.Hitbox.center, 20)
+            pygame.draw.circle(screen, (255,0,0), obj.Hitbox.center, 2)
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
