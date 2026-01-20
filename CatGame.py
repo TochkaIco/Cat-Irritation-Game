@@ -296,26 +296,50 @@ def Generate_Island_BG():
         points.append([r * np.cos(a), r * np.sin(a)])
     points = np.array(points)
 
-    #Making the border smooth by generating 150 extra points
+    #Making the border smooth by generating 1000 extra points
     pts_closed = np.vstack([points, points[0]])
     t = np.arange(len(pts_closed))
-    t_smooth = np.linspace(0, len(points)-1, 150)
+    t_smooth = np.linspace(0, len(points), 1000, endpoint=False)
     cs_x = CubicSpline(t, pts_closed[:, 0], bc_type='periodic')
     cs_y = CubicSpline(t, pts_closed[:, 1], bc_type='periodic')
     sx, sy = cs_x(t_smooth), cs_y(t_smooth)
 
-    #Filling an island
     px = ((sx + 1) * SIZE / 2).astype(int)
     py = ((sy + 1) * SIZE / 2).astype(int)
-    path = Path(np.column_stack([px, py]))
-    y, x = np.mgrid[0:SIZE, 0:SIZE]
-    mask = path.contains_points(np.column_stack([x.ravel(), y.ravel()]))
-    mask = mask.reshape(SIZE, SIZE)
 
     #Creating an image
     img = np.zeros((SIZE, SIZE, 3), dtype=np.uint8)
-    img[~mask] = [25, 76, 204]     #Water  (blue)
-    img[mask] = [25, 153, 51]      #Ground (green)
+    img[:] = [25, 76, 204]  #Water  (blue)
+
+    #Scanline fill algorithm
+    #Creating edges, each edge is a pair (start, end)
+    polygon_points = list(zip(px, py))
+
+    for y in range(SIZE):
+        intersections = []
+
+        #Find all intersections of the contour with this horizontal line
+        for i in range(len(polygon_points)):
+            x1, y1 = polygon_points[i]
+            x2, y2 = polygon_points[(i + 1) % len(polygon_points)]
+
+            # Check whether the edge crosses this line
+            if (y1 <= y < y2) or (y2 <= y < y1):
+                #Getting the X coordinate of the intersection
+                if y2 != y1:
+                    t = (y - y1) / (y2 - y1)
+                    x = x1 + t * (x2 - x1)
+                    intersections.append(int(x))
+
+        #Sort intersections
+        intersections.sort()
+
+        #Fill in between pairs of intersections
+        for i in range(0, len(intersections) - 1, 2):
+            x_start = max(0, intersections[i])
+            x_end = min(SIZE - 1, intersections[i + 1])
+            if x_start <= x_end:
+                img[y, x_start:x_end] = [25, 153, 51]   #Ground (green)
 
     #Converting to an PyGame Surface
     img = np.transpose(img, (1, 0, 2))
@@ -333,6 +357,8 @@ Wall(1024, 500, -5)
 
 while Running == True:
     tempthing -= 1
+    #Glitch fix
+    screen.fill((25, 76, 204))
 
     ##! DELETE AFTER! In a minute there will be 3600 walls!
     #Wall(tempthing, 100,20)
