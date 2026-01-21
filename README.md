@@ -1,9 +1,17 @@
 # 🐱 Cat Irritation Game
 Project Goal: Creating a high-performance, procedurally generated Roguelike using pure Python and PyGame.
 
+---
 
 ## 🌟 Key Technical Features
-Secret at the moment
+- 🌊 Procedural island generation
+Random closed-shape island generation with spline-smoothed coastline using **CubicSpline**, followed by a scanline polygon fill algorithm (NumPy + SciPy)
+- 🎥 Smooth camera tracking system
+Interpolated camera movement that smoothly follows the player while keeping them centered on screen
+- 🧠 DeltaTime-stabilized movement logic
+Velocity normalization combined with clamped DeltaTime to maintain consistent movement and physics behavior across varying frame rates.
+
+**This is just the beginning!**
 
 ---
 
