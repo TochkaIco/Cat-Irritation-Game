@@ -21,6 +21,7 @@ screen = pygame.display.set_mode((1920,1080),pygame.RESIZABLE)
 pygame.display.set_caption("Cat-Irritation-Game")
 clock = pygame.time.Clock()
 DeltaTime = 0.1
+debug_draw = True
 
 #bg_loading
 screen.fill((0, 0, 0))
@@ -48,9 +49,13 @@ Default_Objects = []
 Scene = "MainScene"
 LoadedScene = False
 
+#IslandSize
+IslandSize = 4096
+
 #Layers__--__
 PlayerLayer = []
 WallLayer = []
+SpawnPoint = (IslandSize/2,IslandSize/2)
 
 #Camera
 CameraX = 0
@@ -277,8 +282,6 @@ class Wall:
 
 #BG_Gen
 def Generate_Island_BG():
-    SIZE = 2048
-
     #Spaming to the system, to prevent "No response"
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -304,18 +307,18 @@ def Generate_Island_BG():
     cs_y = CubicSpline(t, pts_closed[:, 1], bc_type='periodic')
     sx, sy = cs_x(t_smooth), cs_y(t_smooth)
 
-    px = ((sx + 1) * SIZE / 2).astype(int)
-    py = ((sy + 1) * SIZE / 2).astype(int)
+    px = ((sx + 1) * IslandSize / 2).astype(int)
+    py = ((sy + 1) * IslandSize / 2).astype(int)
 
     #Creating an image
-    img = np.zeros((SIZE, SIZE, 3), dtype=np.uint8)
+    img = np.zeros((IslandSize, IslandSize, 3), dtype=np.uint8)
     img[:] = [25, 76, 204]  #Water  (blue)
 
     #Scanline fill algorithm
     #Creating edges, each edge is a pair (start, end)
     polygon_points = list(zip(px, py))
 
-    for y in range(SIZE):
+    for y in range(IslandSize):
         intersections = []
 
         #Find all intersections of the contour with this horizontal line
@@ -337,7 +340,7 @@ def Generate_Island_BG():
         #Fill in between pairs of intersections
         for i in range(0, len(intersections) - 1, 2):
             x_start = max(0, intersections[i])
-            x_end = min(SIZE - 1, intersections[i + 1])
+            x_end = min(IslandSize - 1, intersections[i + 1])
             if x_start <= x_end:
                 img[y, x_start:x_end] = [25, 153, 51]   #Ground (green)
 
@@ -350,10 +353,11 @@ IslandBackground = Generate_Island_BG()
 
 
 #Misc
-DefaultPlayer = Player(512,512)
+DefaultPlayer = Player(SpawnPoint[0],SpawnPoint[1])
 tempthing = 1024
 #DONT ANGLE THE WALLS YET! I SWEAR I WILL FIX THE GOOFINESS!!! JUST PUT IT AT 0!!!
-Wall(1024, 500, -5)
+#Done
+Wall(SpawnPoint[0], SpawnPoint[1]-300, 0)
 
 while Running == True:
     tempthing -= 1
@@ -376,6 +380,12 @@ while Running == True:
             print ("loading scene")
             LoadedScene = True
         #-
+        #Debug Collision Draw Toggle
+        for event in PyEvents:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_0:
+                    debug_draw = not debug_draw
+                    print("Debug Draw", debug_draw)
         
         DefaultPlayer.Control_Player()
         UpdateCamera(DefaultPlayer, camera_smoothness=0.15)
@@ -385,20 +395,25 @@ while Running == True:
             
             screen_x = obj.Hitbox.centerx - CameraX
             screen_y = obj.Hitbox.centery - CameraY
-            #I think the camera messes and doesn't give accurate positionssss, fuuuuuuck my sussy baka lifeeee!
+            #No mess anymore
             screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y))) 
             if obj.Layer != "WallLayer":         
                 MoveAndHandleCollisionCheck(obj)
-            #Pygame Drawing for debug purposes
-            pygame.draw.rect(screen, (0,0,255),obj.Hitbox)
-            pygame.draw.circle(screen, (255,0,0), obj.Hitbox.center, 2)
+            
+            #Debug Draw Hitboxes
+            if debug_draw:
+                adjusted_hitbox = obj.Hitbox.copy()
+                adjusted_hitbox.x -= CameraX
+                adjusted_hitbox.y -= CameraY
+                pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
+                pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 2)
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
     DeltaTime = clock.tick(60) / 1000
     DeltaTime = max(0.001, min(0.1, DeltaTime))
     #Meow is back
-    print("meow")
+    #print("meow")
     pygame.display.flip()
 
 
