@@ -108,7 +108,7 @@ def MoveAndHandleCollisionCheck(obj):
                         O_height = object2.height / 2
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                         #tan v
-                        Ex_height = dist * math.radians(object2.PicAngle) 
+                        Ex_height = dist * math.radians(-object2.PicAngle) 
                         obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
                         obj.y = obj.Hitbox.center[1]
                 #bottom
@@ -117,7 +117,7 @@ def MoveAndHandleCollisionCheck(obj):
                         O_height = object2.height / 2
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                         #tan v
-                        Ex_height = dist * -math.radians(object2.PicAngle) 
+                        Ex_height = dist * -math.radians(-object2.PicAngle) 
                         obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
                         obj.y = obj.Hitbox.center[1]
                 #______________________________________________________________________________
@@ -147,7 +147,7 @@ def MoveAndHandleCollisionCheck(obj):
                             O_height = object2.height / 2
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                             #tan v
-                            Ex_height = dist * math.radians(object2.PicAngle) 
+                            Ex_height = dist * math.radians(-object2.PicAngle) 
                             obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
                             obj.y = obj.Hitbox.center[1]
                     else:
@@ -155,7 +155,7 @@ def MoveAndHandleCollisionCheck(obj):
                             O_height = object2.height / 2
                             dist = -object2.width / 2
                             #tan v
-                            Ex_height = dist * math.radians(object2.PicAngle) 
+                            Ex_height = dist * math.radians(-object2.PicAngle) 
                             obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
                             obj.y = obj.Hitbox.center[1]
                         
@@ -166,7 +166,7 @@ def MoveAndHandleCollisionCheck(obj):
                             O_height = object2.height / 2
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                             #tan v
-                            Ex_height = dist * -math.radians(object2.PicAngle) 
+                            Ex_height = dist * -math.radians(-object2.PicAngle) 
                             obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
                             obj.y = obj.Hitbox.center[1]
                     else:
@@ -174,13 +174,13 @@ def MoveAndHandleCollisionCheck(obj):
                             O_height = object2.height / 2
                             dist = object2.width
                             #tan v
-                            Ex_height = dist * -math.radians(object2.PicAngle) 
+                            Ex_height = dist * -math.radians(-object2.PicAngle) 
                             obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
                             obj.y = obj.Hitbox.center[1]
 
                 #_______________________________________________________________________________
 def Rotate(obj):
-    obj.pic = pygame.transform.rotate(obj.OriginPic, obj.PicAngle)
+    obj.pic = pygame.transform.rotate(obj.OriginPic, -obj.PicAngle)
 
 #Managing camera to hold the player always in the middle
 def UpdateCamera(target, camera_smoothness=0.1):
@@ -260,9 +260,47 @@ class Wall:
         self.width = self.width
         print (f"width: {self.width}")
         if self.PicAngle != 0:
+            #back up incase i fuck up
             Bonus_Y_Size = (self.OriginPic.get_width() / 2) * math.radians(self.PicAngle)
             Bonus_X_Size = (self.OriginPic.get_height() / 2) * math.radians(self.PicAngle)
-            self.Hitbox = pygame.Rect(x,y, self.OriginPic.get_width() - Bonus_X_Size, self.OriginPic.get_height() - Bonus_Y_Size)
+            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+            #
+            #New Hitbox
+            #Points
+            Rotate_Point = self.Hitbox.center
+            Original_Top_left = (self.Hitbox.topleft)
+            Original_Top_right = (self.Hitbox.topright)
+            Original_Bottom_left = (self.Hitbox.bottomleft)
+            Original_Bottom_right = (self.Hitbox.bottomright)
+            #Maths
+            Radians_angle = math.radians(self.PicAngle)
+            cos_rad = math.cos(Radians_angle)
+            sin_rad = math.sin(Radians_angle)
+            #Top
+            Top_Left_Offset_X = (Original_Top_left[0] - Rotate_Point[0])
+            Top_Left_Offset_Y = (Original_Top_left[1] - Rotate_Point[1])
+            Top_Right_Offset_X = (Original_Top_right[0] - Rotate_Point[0])
+            Top_Right_Offset_Y = (Original_Top_right[1] - Rotate_Point[1])
+            #Bottom
+            Bottom_Left_Offset_X = (Original_Bottom_left[0] - Rotate_Point[0])
+            Bottom_Left_Offset_Y = (Original_Bottom_left[1] - Rotate_Point[1])
+            Bottom_Right_Offset_X = (Original_Bottom_right[0] - Rotate_Point[0])
+            Bottom_Right_Offset_Y = (Original_Bottom_right[1] - Rotate_Point[1])
+
+            #Calculating points
+            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
+            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
+            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
+            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
+            
+
+            
+
+            
         else:
             self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
 
@@ -282,7 +320,7 @@ DefaultPlayer = Player(SpawnPoint[0],SpawnPoint[1])
 tempthing = 1024
 #DONT ANGLE THE WALLS YET! I SWEAR I WILL FIX THE GOOFINESS!!! JUST PUT IT AT 0!!!
 #Done
-Wall(SpawnPoint[0], SpawnPoint[1]-300, 0)
+Wall(SpawnPoint[0], SpawnPoint[1]-300, 5)
 
 while Running == True:
     tempthing -= 1
@@ -332,6 +370,11 @@ while Running == True:
                 adjusted_hitbox.y -= CameraY
                 pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
                 pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 2)
+                if obj.PicAngle != 0:
+                    pygame.draw.circle(screen, (255,0,0), (obj.Top_left_point[0] - CameraX, obj.Top_left_point[1] - CameraY),2)
+                    pygame.draw.circle(screen, (255,0,0), (obj.Top_right_point[0] - CameraX, obj.Top_right_point[1] - CameraY),2)
+                    pygame.draw.circle(screen, (255,0,0), (obj.Bottom_left_point[0] - CameraX, obj.Bottom_left_point[1] - CameraY),2)
+                    pygame.draw.circle(screen, (255,0,0), (obj.Bottom_right_point[0] - CameraX, obj.Bottom_right_point[1] - CameraY),2)
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
