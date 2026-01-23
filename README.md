@@ -41,6 +41,7 @@ Cat-Irritation-Game/
 │   └── dev_setup.py
 ├── .gitignore
 ├── CatGame.py                # 🧠main script
+├── MapGenerator.py
 ├── README.md
 ├── requirements.txt
 ```
