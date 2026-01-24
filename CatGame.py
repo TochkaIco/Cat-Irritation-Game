@@ -7,6 +7,9 @@
 #imports
 import pygame
 import math
+import numpy as np
+from shapely import Point
+from shapely import LineString
 #map generation import
 import MapGenerator
 
@@ -78,6 +81,42 @@ def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
     return None,None
 
     pass
+def CheckObbCollisions(obj1,obj2):
+    Dist = 50 #put it at anything positive
+    for axis in range(4):
+        if axis == 0:
+            Rad_angle = math.radians(obj1.PicAngle)
+            Axis_X = math.cos(Rad_angle)
+            Axis_Y = math.sin(Rad_angle)
+
+            #max points
+
+            #objpoints
+            obj1_min_x = obj2_min_x = math.inf
+            obj1_min_point = obj1_max_point = obj2_min_point = obj2_max_point = (0,0)
+            obj1_max_x = obj2_max_x = -math.inf
+            #Me (Adam) i am personally messaged and have to check the min max points manually
+            #Jk this is the function for it:
+            for points in obj1.Points:
+                if points[0] > obj1_max_x:
+                    obj1_max_x = points[0]
+                    obj1_max_point = points
+                if points[0] < obj1_min_x:
+                    obj1_min_x = points[0]
+                    obj2_min_point = points
+            #obj2
+            for points in obj2.Points:
+                if points[0] > obj2_max_x:
+                    obj2_max_x = points[0]
+                    obj2_max_point = points
+                if points[0] < obj2_min_x:
+                    obj2_min_x = points[0]
+                    obj2_min_point = points
+
+                
+            
+    pass
+
 
 def MoveAndHandleCollisionCheck(obj):
     amount_of_collisions = 0
@@ -208,6 +247,7 @@ class Player:
         self.OriginPic = Player.Player_Class_Picture
         self.pic = self.OriginPic
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+        self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
         self.height = self.OriginPic.get_height()
         self.width = self.OriginPic.get_width()
         self.PicAngle = 0
@@ -217,6 +257,9 @@ class Player:
         #Put all __init__ logic before the append
         Default_Objects.append(self)
         PlayerLayer.append(self)
+    def Update_Hitbox(self):
+        self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
+
 
     def Control_Player(self):
         for event in PyEvents:
@@ -297,19 +340,58 @@ class Wall:
             self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
                                    (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
             
-
-            
-
-            
+            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+                        
         else:
             self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
-
+            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
 
         Default_Objects.append(self)
-        WallLayer.append(self)
+        WallLayer.append(self)  
+    def Update_Hitbox(self):
+        if self.PicAngle != 0:
+            #back up incase i fuck up
+            Bonus_Y_Size = (self.OriginPic.get_width() / 2) * math.radians(self.PicAngle)
+            Bonus_X_Size = (self.OriginPic.get_height() / 2) * math.radians(self.PicAngle)
+            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+            #
+            #New Hitbox
+            #Points
+            Rotate_Point = self.Hitbox.center
+            Original_Top_left = (self.Hitbox.topleft)
+            Original_Top_right = (self.Hitbox.topright)
+            Original_Bottom_left = (self.Hitbox.bottomleft)
+            Original_Bottom_right = (self.Hitbox.bottomright)
+            #Maths
+            Radians_angle = math.radians(self.PicAngle)
+            cos_rad = math.cos(Radians_angle)
+            sin_rad = math.sin(Radians_angle)
+            #Top
+            Top_Left_Offset_X = (Original_Top_left[0] - Rotate_Point[0])
+            Top_Left_Offset_Y = (Original_Top_left[1] - Rotate_Point[1])
+            Top_Right_Offset_X = (Original_Top_right[0] - Rotate_Point[0])
+            Top_Right_Offset_Y = (Original_Top_right[1] - Rotate_Point[1])
+            #Bottom
+            Bottom_Left_Offset_X = (Original_Bottom_left[0] - Rotate_Point[0])
+            Bottom_Left_Offset_Y = (Original_Bottom_left[1] - Rotate_Point[1])
+            Bottom_Right_Offset_X = (Original_Bottom_right[0] - Rotate_Point[0])
+            Bottom_Right_Offset_Y = (Original_Bottom_right[1] - Rotate_Point[1])
 
-    
-    
+            #Calculating points
+            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
+            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
+            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
+            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
+            
+            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+                        
+        else:
+            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)  
 #}
 
 #Generating BG
@@ -320,7 +402,7 @@ DefaultPlayer = Player(SpawnPoint[0],SpawnPoint[1])
 tempthing = 1024
 #DONT ANGLE THE WALLS YET! I SWEAR I WILL FIX THE GOOFINESS!!! JUST PUT IT AT 0!!!
 #Done
-Wall(SpawnPoint[0], SpawnPoint[1]-300, 5)
+TestWall = Wall(SpawnPoint[0], SpawnPoint[1]-300, 5)
 
 while Running == True:
     tempthing -= 1
@@ -362,7 +444,14 @@ while Running == True:
             screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y))) 
             if obj.Layer != "WallLayer":         
                 MoveAndHandleCollisionCheck(obj)
+
+            DefaultPlayer.Update_Hitbox()
+            TestWall.Update_Hitbox()
+            CheckObbCollisions(DefaultPlayer,TestWall)
             
+            #Debugging my hitboxes
+           
+
             #Debug Draw Hitboxes
             if debug_draw:
                 adjusted_hitbox = obj.Hitbox.copy()
