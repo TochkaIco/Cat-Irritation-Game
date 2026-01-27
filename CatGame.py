@@ -1,8 +1,3 @@
-#______ Adam Ohlsén
-#
-#Btw do you guys do snake_case, CamelCase or kebab-case?
-#Im a bit inconsistent but i will try to adjust to you guys
-#I will insert the simple pygame necesseties, you should know what they are
 
 #imports
 import pygame
@@ -82,40 +77,65 @@ def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
 
     pass
 def CheckObbCollisions(obj1,obj2):
+    Collided = False
     Dist = 50 #put it at anything positive
-    for axis in range(4):
-        if axis == 0:
-            Rad_angle = math.radians(obj1.PicAngle)
-            Axis_X = math.cos(Rad_angle)
-            Axis_Y = math.sin(Rad_angle)
+    pointslist = obj1.Points + obj2.Points
+    CurrentIterration = 0
+    for axis in range(7):
+        point1 = (pointslist[CurrentIterration])
+        #Same as pointslist[CurrentIterration - 1]
+        CurrentIterration += 1
+        point2 = (pointslist[CurrentIterration])
+        # Do point[0] to access the x and point[1] to acces y
+        
+        ax = point1[0]-point2[0]
+        ay = point1[1]-point2[1]
+        lenght = math.sqrt(ax**2+ay**2)
+        ux, uy = ax / lenght, ay / lenght
+        #max points
 
-            #max points
+        obj1_min_x = obj2_min_x = math.inf
+        obj1_min_point = obj1_max_point = obj2_min_point = obj2_max_point = (0,0)
+        obj1_max_x = obj2_max_x = -math.inf
 
-            #objpoints
-            obj1_min_x = obj2_min_x = math.inf
-            obj1_min_point = obj1_max_point = obj2_min_point = obj2_max_point = (0,0)
-            obj1_max_x = obj2_max_x = -math.inf
-            #Me (Adam) i am personally messaged and have to check the min max points manually
-            #Jk this is the function for it:
-            for points in obj1.Points:
-                if points[0] > obj1_max_x:
-                    obj1_max_x = points[0]
-                    obj1_max_point = points
-                if points[0] < obj1_min_x:
-                    obj1_min_x = points[0]
-                    obj2_min_point = points
-            #obj2
-            for points in obj2.Points:
-                if points[0] > obj2_max_x:
-                    obj2_max_x = points[0]
-                    obj2_max_point = points
-                if points[0] < obj2_min_x:
-                    obj2_min_x = points[0]
-                    obj2_min_point = points
+        for points in obj1.Points:
+            dist = (points[0]) * ux + (points[1] * uy)
+            targetx = dist * ux
+            targety = dist * uy
+            if targetx < obj1_min_x:
+                obj1_min_x = targetx
+                obj1_min_y = targety
+            if targetx > obj1_max_x:
+                obj1_max_x = targetx
+                obj1_max_y = targety
+        if debug_draw:
+            pygame.draw.circle(screen,(255,0,0),(obj1_min_x - CameraX, obj1_min_y - CameraY) ,2)
+            pygame.draw.circle(screen,(255,0,0),(obj1_max_x - CameraX, obj1_max_y - CameraY),2)
 
-                
-            
-    pass
+        for points in obj2.Points:
+            dist = (points[0]) * ux + (points[1] * uy)
+            targetx = dist * ux
+            targety = dist * uy
+            if targetx < obj2_min_x:
+                obj2_min_x = targetx
+                obj2_min_y = targety
+            if targetx > obj2_max_x:
+                obj2_max_x = targetx 
+                obj2_max_y = targety      
+        if debug_draw:
+            pygame.draw.circle(screen,(255,255,0),(obj2_min_x - CameraX, obj2_min_y - CameraY) ,2)
+            pygame.draw.circle(screen,(255,255,0),(obj2_max_x - CameraX, obj2_max_y - CameraY),2)
+        
+        print(f"current itteration: {CurrentIterration}")
+        if obj2_min_x < obj1_min_x < obj2_max_x or obj2_min_x < obj1_max_x < obj2_min_x:
+            Collided = True
+            print (f"Did collide: First Obj:{obj2_min_x, obj1_min_x, obj2_max_x} Second Obj: {obj2_min_x, obj1_max_x, obj2_max_x}")
+        else:
+            Collided = False
+            print (f"Didn't collide: First Obj:{obj2_min_x, obj1_min_x, obj2_max_x} Second Obj: {obj2_min_x, obj1_max_x, obj2_max_x}")
+            break       
+        
+    return Collided
 
 
 def MoveAndHandleCollisionCheck(obj):
@@ -303,11 +323,7 @@ class Wall:
         self.width = self.width
         print (f"width: {self.width}")
         if self.PicAngle != 0:
-            #back up incase i fuck up
-            Bonus_Y_Size = (self.OriginPic.get_width() / 2) * math.radians(self.PicAngle)
-            Bonus_X_Size = (self.OriginPic.get_height() / 2) * math.radians(self.PicAngle)
             self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
-            #
             #New Hitbox
             #Points
             Rotate_Point = self.Hitbox.center
@@ -350,11 +366,7 @@ class Wall:
         WallLayer.append(self)  
     def Update_Hitbox(self):
         if self.PicAngle != 0:
-            #back up incase i fuck up
-            Bonus_Y_Size = (self.OriginPic.get_width() / 2) * math.radians(self.PicAngle)
-            Bonus_X_Size = (self.OriginPic.get_height() / 2) * math.radians(self.PicAngle)
             self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
-            #
             #New Hitbox
             #Points
             Rotate_Point = self.Hitbox.center
@@ -402,7 +414,7 @@ DefaultPlayer = Player(SpawnPoint[0],SpawnPoint[1])
 tempthing = 1024
 #DONT ANGLE THE WALLS YET! I SWEAR I WILL FIX THE GOOFINESS!!! JUST PUT IT AT 0!!!
 #Done
-TestWall = Wall(SpawnPoint[0], SpawnPoint[1]-300, 5)
+TestWall = Wall(SpawnPoint[0], SpawnPoint[1]-300, 45)
 
 while Running == True:
     tempthing -= 1
@@ -447,7 +459,7 @@ while Running == True:
 
             DefaultPlayer.Update_Hitbox()
             TestWall.Update_Hitbox()
-            CheckObbCollisions(DefaultPlayer,TestWall)
+            
             
             #Debugging my hitboxes
            
@@ -464,6 +476,9 @@ while Running == True:
                     pygame.draw.circle(screen, (255,0,0), (obj.Top_right_point[0] - CameraX, obj.Top_right_point[1] - CameraY),2)
                     pygame.draw.circle(screen, (255,0,0), (obj.Bottom_left_point[0] - CameraX, obj.Bottom_left_point[1] - CameraY),2)
                     pygame.draw.circle(screen, (255,0,0), (obj.Bottom_right_point[0] - CameraX, obj.Bottom_right_point[1] - CameraY),2)
+                if CheckObbCollisions(DefaultPlayer,TestWall) == True:
+                    pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 10)
+            
 
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
