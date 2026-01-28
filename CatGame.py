@@ -84,15 +84,12 @@ def CheckObbCollisions(obj1,obj2):
     for axis in range(6):
         if CurrentIterration == 3:
             CurrentIterration = 4
-        print(f"current itteration: {CurrentIterration}")
         point1 = (pointslist[CurrentIterration])
         
         point2 = (pointslist[CurrentIterration + 1])
         # Do point[0] to access the x and point[1] to acces y
-        print (f"point1: {point1}, point2: {point2}")
 
         ax = point1[0]-point2[0]
-        print (f"ax: {ax}")
         ay = point1[1]-point2[1]
         length = math.sqrt(ax**2+ay**2)
         ux, uy = ax / length, ay / length
@@ -141,14 +138,10 @@ def CheckObbCollisions(obj1,obj2):
         if ax != 0:
             if obj2_min_x < obj1_min_x < obj2_max_x or obj2_min_x < obj1_max_x < obj2_max_x:
                 Collided = True
-                print (f"Did collide: First Obj:{obj2_min_x, obj1_min_x, obj2_max_x} Second Obj: {obj2_min_x, obj1_max_x, obj2_max_x}")
             else:
                 Collided = False
-                print (f"Didn't collide: First Obj:{obj2_min_x, obj1_min_x, obj2_max_x} Second Obj: {obj2_min_x, obj1_max_x, obj2_max_x}")
                 break
         else:
-            #Opposite because pygame's y coordinates are opposite
-            print ("checked regular y")
             if obj2_min_y < obj1_min_y < obj2_max_y or obj2_min_y < obj1_max_y < obj2_max_y:
                 Collided = True
             else:
@@ -172,7 +165,7 @@ def MoveAndHandleCollisionCheck(obj):
         for object2 in obj.InteractLayers:
             #Checking if it's a slope
             if object2.PicAngle == 0:
-                if obj.Hitbox.colliderect(object2.Hitbox):
+                if CheckObbCollisions(obj,object2) == True:
                     amount_of_collisions += 1
                     if obj.xvelocity > 0:
                         obj.Hitbox.right = object2.Hitbox.left
@@ -184,7 +177,7 @@ def MoveAndHandleCollisionCheck(obj):
                 #______________________________________________________________________________
                 #top
                 if obj.Hitbox.centery < object2.Hitbox.centery - object2.height / 2 and obj.Hitbox.centerx > object2.Hitbox.centerx - object2.width / 2:
-                    if obj.Hitbox.colliderect(object2.Hitbox):
+                    if CheckObbCollisions(obj,object2) == True:
                         O_height = object2.height / 2
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                         #tan v
@@ -193,7 +186,7 @@ def MoveAndHandleCollisionCheck(obj):
                         obj.y = obj.Hitbox.center[1]
                 #bottom
                 if obj.Hitbox.y > object2.Hitbox.y + object2.height / 2 and obj.Hitbox.x < object2.Hitbox.x + object2.width / 2:
-                    if obj.Hitbox.colliderect(object2.Hitbox):
+                    if CheckObbCollisions(obj,object2) == True:
                         O_height = object2.height / 2
                         dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                         #tan v
@@ -223,7 +216,7 @@ def MoveAndHandleCollisionCheck(obj):
                 #top
                 if obj.yvelocity > 0 and obj.Hitbox.centery < object2.Hitbox.centery - object2.height / 2:
                     if obj.Hitbox.centerx > object2.Hitbox.centerx - object2.width / 2:
-                        if obj.Hitbox.colliderect(object2.Hitbox):
+                        if CheckObbCollisions(obj,object2) == True:
                             O_height = object2.height / 2
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                             #tan v
@@ -231,7 +224,7 @@ def MoveAndHandleCollisionCheck(obj):
                             obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
                             obj.y = obj.Hitbox.center[1]
                     else:
-                        if obj.Hitbox.colliderect(object2.Hitbox):
+                        if CheckObbCollisions(obj,object2) == True:
                             O_height = object2.height / 2
                             dist = -object2.width / 2
                             #tan v
@@ -242,7 +235,7 @@ def MoveAndHandleCollisionCheck(obj):
                 #bottom
                 if obj.yvelocity < 0 and obj.Hitbox.centery > object2.Hitbox.centery + object2.height / 2: 
                     if obj.Hitbox.centerx < object2.Hitbox.centerx + object2.width / 2:
-                        if obj.Hitbox.colliderect(object2.Hitbox):
+                        if CheckObbCollisions(obj,object2) == True:
                             O_height = object2.height / 2
                             dist = obj.Hitbox.centerx - object2.Hitbox.centerx
                             #tan v
@@ -250,7 +243,7 @@ def MoveAndHandleCollisionCheck(obj):
                             obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
                             obj.y = obj.Hitbox.center[1]
                     else:
-                        if obj.Hitbox.colliderect(object2.Hitbox):
+                        if CheckObbCollisions(obj,object2) == True:
                             O_height = object2.height / 2
                             dist = object2.width
                             #tan v
