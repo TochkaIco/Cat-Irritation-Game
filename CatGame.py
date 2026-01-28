@@ -81,17 +81,21 @@ def CheckObbCollisions(obj1,obj2):
     Dist = 50 #put it at anything positive
     pointslist = obj1.Points + obj2.Points
     CurrentIterration = 0
-    for axis in range(7):
+    for axis in range(6):
+        if CurrentIterration == 3:
+            CurrentIterration = 4
+        print(f"current itteration: {CurrentIterration}")
         point1 = (pointslist[CurrentIterration])
-        #Same as pointslist[CurrentIterration - 1]
-        CurrentIterration += 1
-        point2 = (pointslist[CurrentIterration])
-        # Do point[0] to access the x and point[1] to acces y
         
+        point2 = (pointslist[CurrentIterration + 1])
+        # Do point[0] to access the x and point[1] to acces y
+        print (f"point1: {point1}, point2: {point2}")
+
         ax = point1[0]-point2[0]
+        print (f"ax: {ax}")
         ay = point1[1]-point2[1]
-        lenght = math.sqrt(ax**2+ay**2)
-        ux, uy = ax / lenght, ay / lenght
+        length = math.sqrt(ax**2+ay**2)
+        ux, uy = ax / length, ay / length
         #max points
 
         obj1_min_x = obj2_min_x = math.inf
@@ -99,9 +103,13 @@ def CheckObbCollisions(obj1,obj2):
         obj1_max_x = obj2_max_x = -math.inf
 
         for points in obj1.Points:
-            dist = (points[0]) * ux + (points[1] * uy)
-            targetx = dist * ux
-            targety = dist * uy
+            if ax != 0:
+                dist = (points[0]) * ux + (points[1] * uy)
+                targetx = dist * ux
+                targety = dist * uy
+            else:
+                targetx = points[0]
+                targety = points[1]
             if targetx < obj1_min_x:
                 obj1_min_x = targetx
                 obj1_min_y = targety
@@ -113,9 +121,13 @@ def CheckObbCollisions(obj1,obj2):
             pygame.draw.circle(screen,(255,0,0),(obj1_max_x - CameraX, obj1_max_y - CameraY),2)
 
         for points in obj2.Points:
-            dist = (points[0]) * ux + (points[1] * uy)
-            targetx = dist * ux
-            targety = dist * uy
+            if ax != 0:
+                dist = (points[0]) * ux + (points[1] * uy)
+                targetx = dist * ux
+                targety = dist * uy
+            else:
+                targetx = points[0]
+                targety = points[1]
             if targetx < obj2_min_x:
                 obj2_min_x = targetx
                 obj2_min_y = targety
@@ -126,15 +138,24 @@ def CheckObbCollisions(obj1,obj2):
             pygame.draw.circle(screen,(255,255,0),(obj2_min_x - CameraX, obj2_min_y - CameraY) ,2)
             pygame.draw.circle(screen,(255,255,0),(obj2_max_x - CameraX, obj2_max_y - CameraY),2)
         
-        print(f"current itteration: {CurrentIterration}")
-        if obj2_min_x < obj1_min_x < obj2_max_x or obj2_min_x < obj1_max_x < obj2_min_x:
-            Collided = True
-            print (f"Did collide: First Obj:{obj2_min_x, obj1_min_x, obj2_max_x} Second Obj: {obj2_min_x, obj1_max_x, obj2_max_x}")
+        if ax != 0:
+            if obj2_min_x < obj1_min_x < obj2_max_x or obj2_min_x < obj1_max_x < obj2_max_x:
+                Collided = True
+                print (f"Did collide: First Obj:{obj2_min_x, obj1_min_x, obj2_max_x} Second Obj: {obj2_min_x, obj1_max_x, obj2_max_x}")
+            else:
+                Collided = False
+                print (f"Didn't collide: First Obj:{obj2_min_x, obj1_min_x, obj2_max_x} Second Obj: {obj2_min_x, obj1_max_x, obj2_max_x}")
+                break
         else:
-            Collided = False
-            print (f"Didn't collide: First Obj:{obj2_min_x, obj1_min_x, obj2_max_x} Second Obj: {obj2_min_x, obj1_max_x, obj2_max_x}")
-            break       
-        
+            #Opposite because pygame's y coordinates are opposite
+            print ("checked regular y")
+            if obj2_min_y < obj1_min_y < obj2_max_y or obj2_min_y < obj1_max_y < obj2_max_y:
+                Collided = True
+            else:
+                Collided = False
+                break
+        CurrentIterration += 1
+
     return Collided
 
 
@@ -412,9 +433,7 @@ IslandBackground = MapGenerator.Generate_Island_BG()
 #Misc
 DefaultPlayer = Player(SpawnPoint[0],SpawnPoint[1])
 tempthing = 1024
-#DONT ANGLE THE WALLS YET! I SWEAR I WILL FIX THE GOOFINESS!!! JUST PUT IT AT 0!!!
-#Done
-TestWall = Wall(SpawnPoint[0], SpawnPoint[1]-300, 45)
+TestWall = Wall(SpawnPoint[0], SpawnPoint[1]-300, 20)
 
 while Running == True:
     tempthing -= 1
