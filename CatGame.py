@@ -153,9 +153,48 @@ def CheckObbCollisions(obj1,obj2):
 
 
 def MoveAndHandleCollisionCheck(obj):
-    amount_of_collisions = 0
     velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
-    
+    for object2 in obj.InteractLayers:
+        if obj.Hitbox.centery < object2.Hitbox.centery:
+            YDirection = -1
+        else:
+            YDirection = 1
+        if obj.Hitbox.centerx > object2.Hitbox.centerx:
+            XDirection = -1
+        else:
+            XDirection = 1
+        #Remember the y axis is inverted in pygame
+        if object2.Points[0][1] > object2.Points[1][1]:
+            TopYPoint = object2.Points[0][1]
+        else:
+            TopYPoint = object2.Points[1][1]
+        if object2.Points[2][1] < object2.Points[3][1]:
+            BottomYPoint = object2.Points[2][1]
+        else:
+            BottomYPoint = object2.Points[3][1]
+
+        #top
+        #Ok, i will first if it's below or above, then if it's actually within points
+        if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0] and obj.yvelocity >= 0:
+            if CheckObbCollisions(obj,object2) == True:
+                O_height = object2.height / 2
+                dist = obj.Hitbox.centerx - object2.Hitbox.centerx
+                #tan v
+                Ex_height = dist * math.radians(-object2.PicAngle) * -YDirection
+                obj.Hitbox.centery = object2.Hitbox.centery + (O_height + Ex_height + obj.height / 2) * YDirection
+                obj.y = obj.Hitbox.center[1]
+        #bottom
+        if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0] and obj.yvelocity <= 0:
+            if CheckObbCollisions(obj,object2) == True:
+                O_height = object2.height / 2
+                dist = obj.Hitbox.centerx - object2.Hitbox.centerx
+                #tan v
+                Ex_height = dist * math.radians(-object2.PicAngle) * -YDirection
+                obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
+                obj.y = obj.Hitbox.center[1]
+        #______________________________________________________________________________
+
+
     #Checking X collisions
     if velocity_magnitute > 0:
         normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
@@ -166,7 +205,6 @@ def MoveAndHandleCollisionCheck(obj):
             #Checking if it's a slope
             if object2.PicAngle == 0:
                 if CheckObbCollisions(obj,object2) == True:
-                    amount_of_collisions += 1
                     if obj.xvelocity > 0:
                         obj.Hitbox.right = object2.Hitbox.left
                     if obj.xvelocity < 0:
@@ -175,25 +213,7 @@ def MoveAndHandleCollisionCheck(obj):
             else:
                 #Slopped objects x collision logic
                 #______________________________________________________________________________
-                #top
-                if obj.Hitbox.centery < object2.Hitbox.centery - object2.height / 2 and obj.Hitbox.centerx > object2.Hitbox.centerx - object2.width / 2:
-                    if CheckObbCollisions(obj,object2) == True:
-                        O_height = object2.height / 2
-                        dist = obj.Hitbox.centerx - object2.Hitbox.centerx
-                        #tan v
-                        Ex_height = dist * math.radians(-object2.PicAngle) 
-                        obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
-                        obj.y = obj.Hitbox.center[1]
-                #bottom
-                if obj.Hitbox.y > object2.Hitbox.y + object2.height / 2 and obj.Hitbox.x < object2.Hitbox.x + object2.width / 2:
-                    if CheckObbCollisions(obj,object2) == True:
-                        O_height = object2.height / 2
-                        dist = obj.Hitbox.centerx - object2.Hitbox.centerx
-                        #tan v
-                        Ex_height = dist * -math.radians(-object2.PicAngle) 
-                        obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
-                        obj.y = obj.Hitbox.center[1]
-                #______________________________________________________________________________
+                pass
 
     #-
     #Checking Y collisions
@@ -204,7 +224,6 @@ def MoveAndHandleCollisionCheck(obj):
         for object2 in obj.InteractLayers:
             if object2.PicAngle == 0:
                 if obj.Hitbox.colliderect(object2.Hitbox):
-                    amount_of_collisions += 1
                     if obj.yvelocity > 0:
                         obj.Hitbox.bottom = object2.Hitbox.top
                     if obj.yvelocity < 0:
@@ -213,43 +232,7 @@ def MoveAndHandleCollisionCheck(obj):
             else:
                 #slopped objects, y collision logic
                 #______________________________________________________________________________
-                #top
-                if obj.yvelocity > 0 and obj.Hitbox.centery < object2.Hitbox.centery - object2.height / 2:
-                    if obj.Hitbox.centerx > object2.Hitbox.centerx - object2.width / 2:
-                        if CheckObbCollisions(obj,object2) == True:
-                            O_height = object2.height / 2
-                            dist = obj.Hitbox.centerx - object2.Hitbox.centerx
-                            #tan v
-                            Ex_height = dist * math.radians(-object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
-                            obj.y = obj.Hitbox.center[1]
-                    else:
-                        if CheckObbCollisions(obj,object2) == True:
-                            O_height = object2.height / 2
-                            dist = -object2.width / 2
-                            #tan v
-                            Ex_height = dist * math.radians(-object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.centery - O_height - Ex_height - obj.height / 2
-                            obj.y = obj.Hitbox.center[1]
-                        
-                #bottom
-                if obj.yvelocity < 0 and obj.Hitbox.centery > object2.Hitbox.centery + object2.height / 2: 
-                    if obj.Hitbox.centerx < object2.Hitbox.centerx + object2.width / 2:
-                        if CheckObbCollisions(obj,object2) == True:
-                            O_height = object2.height / 2
-                            dist = obj.Hitbox.centerx - object2.Hitbox.centerx
-                            #tan v
-                            Ex_height = dist * -math.radians(-object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
-                            obj.y = obj.Hitbox.center[1]
-                    else:
-                        if CheckObbCollisions(obj,object2) == True:
-                            O_height = object2.height / 2
-                            dist = object2.width
-                            #tan v
-                            Ex_height = dist * -math.radians(-object2.PicAngle) 
-                            obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
-                            obj.y = obj.Hitbox.center[1]
+                pass
 
                 #_______________________________________________________________________________
 def Rotate(obj):
@@ -481,7 +464,7 @@ while Running == True:
                 adjusted_hitbox = obj.Hitbox.copy()
                 adjusted_hitbox.x -= CameraX
                 adjusted_hitbox.y -= CameraY
-                pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
+                #pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
                 pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 2)
                 if obj.PicAngle != 0:
                     pygame.draw.circle(screen, (255,0,0), (obj.Top_left_point[0] - CameraX, obj.Top_left_point[1] - CameraY),2)
