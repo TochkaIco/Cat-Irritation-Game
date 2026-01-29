@@ -3,8 +3,6 @@
 import pygame
 import math
 import numpy as np
-from shapely import Point
-from shapely import LineString
 #map generation import
 import MapGenerator
 
@@ -210,10 +208,6 @@ def MoveAndHandleCollisionCheck(obj):
                     if obj.xvelocity < 0:
                         obj.Hitbox.left = object2.Hitbox.right
                     obj.x = obj.Hitbox.center[0]
-            else:
-                #Slopped objects x collision logic
-                #______________________________________________________________________________
-                pass
 
     #-
     #Checking Y collisions
@@ -229,10 +223,6 @@ def MoveAndHandleCollisionCheck(obj):
                     if obj.yvelocity < 0:
                         obj.Hitbox.top = object2.Hitbox.bottom
                     obj.y = obj.Hitbox.center[1]
-            else:
-                #slopped objects, y collision logic
-                #______________________________________________________________________________
-                pass
 
                 #_______________________________________________________________________________
 def Rotate(obj):
