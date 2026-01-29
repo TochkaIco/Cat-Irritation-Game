@@ -11,6 +11,10 @@ import MapGenerator
 #basics --
 pygame.init()
 screen = pygame.display.set_mode((1920,1080),pygame.RESIZABLE)
+#Roman, you can't add RESIZABLE without having the original screen width and height
+Size_Difference = screen.get_height() / screen.get_width()
+Original_screen = screen.get_width(),screen.get_height()
+
 pygame.display.set_caption("Cat-Irritation-Game")
 clock = pygame.time.Clock()
 DeltaTime = 0.1
@@ -30,6 +34,7 @@ Roman = pygame.image.load("Images/Roman-Verde.png").convert_alpha()
 Roman = pygame.transform.scale_by(Roman,0.3)
 
 CatGirl = pygame.image.load("Images/Catgirl 15x38.png").convert_alpha()
+HealthBar = pygame.image.load("Images/Cat_health_bar.png").convert_alpha()
 #}
 
 ###LogicAspects
@@ -158,39 +163,48 @@ def MoveAndHandleCollisionCheck(obj):
         else:
             YDirection = 1
         if obj.Hitbox.centerx > object2.Hitbox.centerx:
-            XDirection = -1
-        else:
             XDirection = 1
+        else:
+            XDirection = -1
         #Remember the y axis is inverted in pygame
         if object2.Points[0][1] > object2.Points[1][1]:
             TopYPoint = object2.Points[0][1]
+            BottomYPoint = object2.Points[3][1]  
+
+            LeftXPoint = object2.Points[2][0] 
+            RightXPoint = object2.Points[1][0]        
         else:
             TopYPoint = object2.Points[1][1]
-        if object2.Points[2][1] < object2.Points[3][1]:
             BottomYPoint = object2.Points[2][1]
-        else:
-            BottomYPoint = object2.Points[3][1]
 
+            LeftXPoint = object2.Points[0][0]
+            RightXPoint = object2.Points[3][0]
+            
+
+        #tan v
+        Y_height = object2.height / 2
+        X_height = object2.width / 2
+        Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.radians(-object2.PicAngle) * -YDirection
+        Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * math.radians(object2.PicAngle) * -XDirection
         #top
         #Ok, i will first if it's below or above, then if it's actually within points
-        if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0] and obj.yvelocity >= 0:
-            if CheckObbCollisions(obj,object2) == True:
-                O_height = object2.height / 2
-                dist = obj.Hitbox.centerx - object2.Hitbox.centerx
-                #tan v
-                Ex_height = dist * math.radians(-object2.PicAngle) * -YDirection
-                obj.Hitbox.centery = object2.Hitbox.centery + (O_height + Ex_height + obj.height / 2) * YDirection
+        CollidedOnY = False
+        if CheckObbCollisions(obj,object2) == True:
+            if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0] and obj.yvelocity >= 0:
+                obj.Hitbox.centery = object2.Hitbox.centery + (Y_height + Ey_height + obj.height / 2) * YDirection
                 obj.y = obj.Hitbox.center[1]
-        #bottom
-        if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0] and obj.yvelocity <= 0:
-            if CheckObbCollisions(obj,object2) == True:
-                O_height = object2.height / 2
-                dist = obj.Hitbox.centerx - object2.Hitbox.centerx
-                #tan v
-                Ex_height = dist * math.radians(-object2.PicAngle) * -YDirection
-                obj.Hitbox.centery = object2.Hitbox.centery + O_height + Ex_height + obj.height / 2
+                CollidedOnY = True
+            #bottom
+            if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0] and obj.yvelocity <= 0:
+                obj.Hitbox.centery = object2.Hitbox.centery + (Y_height + Ey_height + obj.height / 2) * YDirection
                 obj.y = obj.Hitbox.center[1]
-        #______________________________________________________________________________
+                CollidedOnY = True
+            #______________________________________________________________________________
+            #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
+            if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
+                obj.Hitbox.right = object2.Hitbox.centerx + (X_height + Ex_height + obj.width / 2) * XDirection
+            if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
+                obj.Hitbox.left = object2.Hitbox.centerx + (X_height + Ex_height + obj.width / 2) * XDirection
 
 
     #Checking X collisions
@@ -244,6 +258,8 @@ class Player:
     def __init__(self,x,y):
         #______ Adam Ohlsén
         self.WalkSpeed = 200
+        self.MaxHealth = 100
+        self.Health = self.MaxHealth
         #X
         self.x = x
         self.xvelocity = 0
@@ -253,10 +269,12 @@ class Player:
         #Misc
         self.OriginPic = Player.Player_Class_Picture
         self.pic = self.OriginPic
+        #Hitbox
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
         self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
         self.height = self.OriginPic.get_height()
         self.width = self.OriginPic.get_width()
+
         self.PicAngle = 0
         self.Layer = "PlayerLayer"
         self.InteractLayers = WallLayer
@@ -432,20 +450,23 @@ while Running == True:
         DefaultPlayer.Control_Player()
         UpdateCamera(DefaultPlayer, camera_smoothness=0.15)
         screen.blit(IslandBackground, (-CameraX, -CameraY))
+
         for obj in Default_Objects:
             Rotate(obj)
             
             screen_x = obj.Hitbox.centerx - CameraX
             screen_y = obj.Hitbox.centery - CameraY
             #No mess anymore
+            Proportion_To_Scale_By = screen.get_width()  * Size_Difference / (Original_screen[1])
+
+            obj.Pic = pygame.transform.scale_by(obj.OriginPic, Proportion_To_Scale_By)
+
             screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y))) 
             if obj.Layer != "WallLayer":         
                 MoveAndHandleCollisionCheck(obj)
-
             DefaultPlayer.Update_Hitbox()
             TestWall.Update_Hitbox()
-            
-            
+
             #Debugging my hitboxes
            
 
@@ -463,6 +484,12 @@ while Running == True:
                     pygame.draw.circle(screen, (255,0,0), (obj.Bottom_right_point[0] - CameraX, obj.Bottom_right_point[1] - CameraY),2)
                 if CheckObbCollisions(DefaultPlayer,TestWall) == True:
                     pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 10)
+
+        #The player healthbar, maybeeee i should've made a ui class but it's like 24:00
+        print (f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Original_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
+
+        #Wait wtf? why is that genuinely just not working?
+        screen.blit(HealthBar, (HealthBar.get_width() * Proportion_To_Scale_By,HealthBar.get_height() * Proportion_To_Scale_By))
             
 
     #______ Adam Ohlsén
