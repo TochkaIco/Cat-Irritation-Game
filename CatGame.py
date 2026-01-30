@@ -10,10 +10,12 @@ import MapGenerator
 #{
 #basics --
 pygame.init()
-screen = pygame.display.set_mode((1920,1080),pygame.RESIZABLE)
+display_info = pygame.display.Info()
+
+screen = pygame.display.set_mode((display_info.current_w,display_info.current_h),pygame.RESIZABLE)
 #Roman, you can't add RESIZABLE without having the original screen width and height
 Size_Difference = screen.get_height() / screen.get_width()
-Original_screen = screen.get_width(),screen.get_height()
+Original_screen = 1920,1080
 
 pygame.display.set_caption("Cat-Irritation-Game")
 clock = pygame.time.Clock()
@@ -246,8 +248,8 @@ def Rotate(obj):
 def UpdateCamera(target, camera_smoothness=0.1):
     global CameraX, CameraY
 
-    target_x = target.Hitbox.x - 1920/2
-    target_y = target.Hitbox.y - 1080/2
+    target_x = target.Hitbox.x - screen.get_width()/2
+    target_y = target.Hitbox.y - screen.get_height()/2
 
     CameraX += (target_x - CameraX) * camera_smoothness
     CameraY += (target_y - CameraY) * camera_smoothness
@@ -267,8 +269,9 @@ class Player:
         self.y = y
         self.yvelocity = 0
         #Misc
-        self.OriginPic = Player.Player_Class_Picture
-        self.pic = self.OriginPic
+        self.RootPic = Player.Player_Class_Picture
+        self.OriginPic = self.RootPic
+        self.pic = self.RootPic
         #Hitbox
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
         self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
@@ -317,7 +320,8 @@ class Wall:
         self.y = y
 
         #Misc
-        self.OriginPic = Wall.Wall_Class_Picture
+        self.RootPic = Wall.Wall_Class_Picture
+        self.OriginPic = self.RootPic
         self.pic = self.OriginPic
         self.PicAngle = angle
         self.Layer = "WallLayer"
@@ -459,7 +463,7 @@ while Running == True:
             #No mess anymore
             Proportion_To_Scale_By = screen.get_width()  * Size_Difference / (Original_screen[1])
 
-            obj.Pic = pygame.transform.scale_by(obj.OriginPic, Proportion_To_Scale_By)
+            obj.OriginPic = pygame.transform.scale_by(obj.RootPic, Proportion_To_Scale_By)
 
             screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y))) 
             if obj.Layer != "WallLayer":         
@@ -489,9 +493,10 @@ while Running == True:
         print (f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Original_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
 
         #Wait wtf? why is that genuinely just not working?
-        screen.blit(HealthBar, (HealthBar.get_width() * Proportion_To_Scale_By,HealthBar.get_height() * Proportion_To_Scale_By))
+        screen.blit(HealthBar, (0,0))
+        print(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
             
-
+            
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
     DeltaTime = clock.tick(60) / 1000
