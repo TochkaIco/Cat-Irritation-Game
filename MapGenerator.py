@@ -9,6 +9,7 @@ IslandSize = 4096
 n = 15
 min_r = 0.8
 extra_points = 1000
+jaggedness = 0.25
 water_color = [25, 76, 204]  #Water color (blue)
 ground_color = [25, 153, 51]  #Ground color (green)
 
@@ -25,7 +26,7 @@ def Generate_Island_BG():
     angles = np.linspace(0, 2*np.pi, n, endpoint=False)
     points = []
     for a in angles:
-        r = min_r + (np.random.rand() - 0.5) * 0.25
+        r = min_r + (np.random.rand() - 0.5) * jaggedness
         points.append([r * np.cos(a), r * np.sin(a)])
     points = np.array(points)
 
