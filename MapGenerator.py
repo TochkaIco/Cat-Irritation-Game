@@ -1,10 +1,13 @@
 import pygame
 import numpy as np
-import matplotlib.pyplot as plt
+import random
+from pathlib import Path
 from scipy.interpolate import CubicSpline
-from matplotlib.path import Path
 
-#IslandSize
+#So I have remade almost the entire island generation code to use Pygame Surfaces directly
+#This should be way faster and easier to manage. Ask me if you have questions. Roman
+
+#Configuration stuff
 IslandSize = 4096
 n = 15
 min_r = 0.8
@@ -12,6 +15,24 @@ extra_points = 1000
 jaggedness = 0.25
 water_color = [25, 76, 204]  #Water color (blue)
 ground_color = [25, 153, 51]  #Ground color (green)
+
+def load_flowers(folder_path):
+    path = Path(folder_path)
+    #Search for all png files
+    flower_files = list(path.glob("*.png"))
+    
+    if not flower_files:
+        print(f"You fucked up: No flowers found in {folder_path}")
+        return []
+
+    images = []
+    for f in flower_files:
+        img = pygame.image.load(str(f)).convert_alpha()
+        #Making them 2x bigger (as we discassed with Adam)
+        w, h = img.get_size()
+        img = pygame.transform.scale(img, (w * 2, h * 2))
+        images.append(img)
+    return images
 
 def Generate_Island_BG():
     #Spaming to the system, to prevent "No response"
@@ -38,43 +59,37 @@ def Generate_Island_BG():
     cs_y = CubicSpline(t, pts_closed[:, 1], bc_type='periodic')
     sx, sy = cs_x(t_smooth), cs_y(t_smooth)
 
+    #Now we use Pygame Surface directly for simplicity
+    island_surface = pygame.Surface((IslandSize, IslandSize))
+    island_surface.fill(water_color) #Water (blue)
+
+    #Convert coordinates for pygame
     px = ((sx + 1) * IslandSize / 2).astype(int)
     py = ((sy + 1) * IslandSize / 2).astype(int)
-
-    #Creating an image
-    img = np.zeros((IslandSize, IslandSize, 3), dtype=np.uint8)
-    img[:] = water_color  #Water  (blue)
-
-    #Scanline fill algorithm
-    #Creating edges, each edge is a pair (start, end)
     polygon_points = list(zip(px, py))
 
-    for y in range(IslandSize):
-        intersections = []
+    #This thing should be way faster than drawing line by line
+    pygame.draw.polygon(island_surface, ground_color, polygon_points) #Ground (green)
 
-        #Find all intersections of the contour with this horizontal line
-        for i in range(len(polygon_points)):
-            x1, y1 = polygon_points[i]
-            x2, y2 = polygon_points[(i + 1) % len(polygon_points)]
-
-            # Check whether the edge crosses this line
-            if (y1 <= y < y2) or (y2 <= y < y1):
-                #Getting the X coordinate of the intersection
-                if y2 != y1:
-                    t = (y - y1) / (y2 - y1)
-                    x = x1 + t * (x2 - x1)
-                    intersections.append(int(x))
-
-        #Sort intersections
-        intersections.sort()
-
-        #Fill in between pairs of intersections
-        for i in range(0, len(intersections) - 1, 2):
-            x_start = max(0, intersections[i])
-            x_end = min(IslandSize - 1, intersections[i + 1])
-            if x_start <= x_end:
-                img[y, x_start:x_end] = ground_color   #Ground (green)
-
-    #Converting to an PyGame Surface
-    img = np.transpose(img, (1, 0, 2))
-    return pygame.surfarray.make_surface(img)
+    #Fancy flower generation
+    flower_sprites = load_flowers("Images/Flowers")
+    
+    if flower_sprites:
+        num_flowers = 1000
+        placed = 0
+        
+        while placed < num_flowers:
+            #Randomly pick from land area 
+            #Basicly we gamble until we find a green pixel (shoyld be ok in our case)
+            x = random.randint(0, IslandSize - 1)
+            y = random.randint(0, IslandSize - 1)
+            
+            if island_surface.get_at((x, y))[:3] == tuple(ground_color):
+                flower = random.choice(flower_sprites)
+                rect = flower.get_rect(center=(x, y))
+                
+                #Baking them into one surface
+                island_surface.blit(flower, rect)
+                placed += 1
+            
+    return island_surface
