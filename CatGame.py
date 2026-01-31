@@ -173,7 +173,6 @@ def MoveAndHandleCollisionCheck(obj):
                 
 
             #tan v
-            X_height = object2.width / 2
             Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.radians(object2.PicAngle) * YDirection
             Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * math.radians(object2.PicAngle) * -XDirection
             #top
@@ -192,9 +191,9 @@ def MoveAndHandleCollisionCheck(obj):
                 #______________________________________________________________________________
                 #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
                 if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
-                    obj.Hitbox.right = object2.Hitbox.centerx + (X_height + Ex_height + (obj.height / 2 * math.radians(object2.PicAngle))) * XDirection
+                    obj.Hitbox.right = object2.Hitbox.left + (Ex_height + (obj.height / 2 * math.radians(object2.PicAngle))) * XDirection
                 if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
-                    obj.Hitbox.left = object2.Hitbox.centerx + (X_height + Ex_height + (obj.height / 2 * math.radians(object2.PicAngle))) * XDirection
+                    obj.Hitbox.left = object2.Hitbox.right + (Ex_height + (obj.height / 2 * math.radians(object2.PicAngle))) * XDirection
 
 
     #Checking X collisions
