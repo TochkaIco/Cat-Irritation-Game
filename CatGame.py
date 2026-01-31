@@ -160,53 +160,41 @@ def CheckObbCollisions(obj1,obj2):
 def MoveAndHandleCollisionCheck(obj):
     velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
     for object2 in obj.InteractLayers:
-        if obj.Hitbox.centery < object2.Hitbox.centery:
-            YDirection = -1
-        else:
-            YDirection = 1
-        if obj.Hitbox.centerx > object2.Hitbox.centerx:
-            XDirection = 1
-        else:
-            XDirection = -1
-        #Remember the y axis is inverted in pygame
-        if object2.Points[0][1] > object2.Points[1][1]:
-            TopYPoint = object2.Points[0][1]
-            BottomYPoint = object2.Points[3][1]  
+        if object2.PicAngle != 0:
+            obj.Update_Hitbox()
+            object2.Update_Hitbox()
+            if obj.Hitbox.centery < object2.Hitbox.centery: YDirection = -1 
+            else: YDirection = 1
+            if obj.Hitbox.centerx > object2.Hitbox.centerx: XDirection = 1
+            else: XDirection = -1
+            #Getting the points to compare pos to
+            if object2.Points[0][1] > object2.Points[1][1]: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, = object2.Points[1][0] = object2.Points[0][1], object2.Points[3][1], object2.Points[2][0]
+            else: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint = object2.Points[1][1], object2.Points[2][1], object2.Points[0][0], object2.Points[3][0]
+                
 
-            LeftXPoint = object2.Points[2][0] 
-            RightXPoint = object2.Points[1][0]        
-        else:
-            TopYPoint = object2.Points[1][1]
-            BottomYPoint = object2.Points[2][1]
-
-            LeftXPoint = object2.Points[0][0]
-            RightXPoint = object2.Points[3][0]
-            
-
-        #tan v
-        Y_height = object2.height / 2
-        X_height = object2.width / 2
-        Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.radians(-object2.PicAngle) * -YDirection
-        Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * math.radians(object2.PicAngle) * -XDirection
-        #top
-        #Ok, i will first if it's below or above, then if it's actually within points
-        CollidedOnY = False
-        if CheckObbCollisions(obj,object2) == True:
-            if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0] and obj.yvelocity >= 0:
-                obj.Hitbox.centery = object2.Hitbox.centery + (Y_height + Ey_height + obj.height / 2) * YDirection
-                obj.y = obj.Hitbox.center[1]
-                CollidedOnY = True
-            #bottom
-            if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0] and obj.yvelocity <= 0:
-                obj.Hitbox.centery = object2.Hitbox.centery + (Y_height + Ey_height + obj.height / 2) * YDirection
-                obj.y = obj.Hitbox.center[1]
-                CollidedOnY = True
-            #______________________________________________________________________________
-            #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
-            if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
-                obj.Hitbox.right = object2.Hitbox.centerx + (X_height + Ex_height + obj.width / 2) * XDirection
-            if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
-                obj.Hitbox.left = object2.Hitbox.centerx + (X_height + Ex_height + obj.width / 2) * XDirection
+            #tan v
+            X_height = object2.width / 2
+            Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.radians(object2.PicAngle) * YDirection
+            Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * math.radians(object2.PicAngle) * -XDirection
+            #top
+            #Ok, i will first if it's below or above, then if it's actually within points
+            CollidedOnY = False
+            if CheckObbCollisions(obj,object2) == True:
+                if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0]:
+                    if obj.yvelocity >= 0:
+                        obj.Hitbox.bottom = object2.Hitbox.top + (Ey_height + obj.width / 2 * math.radians(object2.PicAngle)) * YDirection
+                    CollidedOnY = True
+                #bottom
+                if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0]: 
+                    if obj.yvelocity <= 0:
+                        obj.Hitbox.top = object2.Hitbox.bottom + (Ey_height + obj.width / 2 * math.radians(object2.PicAngle)) * YDirection
+                    CollidedOnY = True
+                #______________________________________________________________________________
+                #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
+                if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
+                    obj.Hitbox.right = object2.Hitbox.centerx + (X_height + Ex_height + (obj.height / 2 * math.radians(object2.PicAngle))) * XDirection
+                if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
+                    obj.Hitbox.left = object2.Hitbox.centerx + (X_height + Ex_height + (obj.height / 2 * math.radians(object2.PicAngle))) * XDirection
 
 
     #Checking X collisions
@@ -218,7 +206,7 @@ def MoveAndHandleCollisionCheck(obj):
         for object2 in obj.InteractLayers:
             #Checking if it's a slope
             if object2.PicAngle == 0:
-                if CheckObbCollisions(obj,object2) == True:
+                if obj.Hitbox.colliderect(object2.Hitbox):
                     if obj.xvelocity > 0:
                         obj.Hitbox.right = object2.Hitbox.left
                     if obj.xvelocity < 0:
@@ -270,8 +258,9 @@ class Player:
         self.yvelocity = 0
         #Misc
         self.RootPic = Player.Player_Class_Picture
+        self.RootPic = pygame.transform.scale_by(self.RootPic,2)
         self.OriginPic = self.RootPic
-        self.pic = self.RootPic
+        self.pic = self.OriginPic
         #Hitbox
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
         self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
@@ -286,7 +275,12 @@ class Player:
         Default_Objects.append(self)
         PlayerLayer.append(self)
     def Update_Hitbox(self):
+        #This may seem stupid and redundant but we need it, just trust me
+        self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
+        #
         self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
+        self.height = self.OriginPic.get_height()
+        self.width = self.OriginPic.get_width()
 
 
     def Control_Player(self):
@@ -321,15 +315,14 @@ class Wall:
 
         #Misc
         self.RootPic = Wall.Wall_Class_Picture
+        self.RootPic = pygame.transform.scale_by(self.RootPic,2)
         self.OriginPic = self.RootPic
         self.pic = self.OriginPic
         self.PicAngle = angle
         self.Layer = "WallLayer"
         self.height = self.OriginPic.get_height()
-        self.height = self.height
         print (f"height: {self.height}")
         self.width = self.OriginPic.get_width()
-        self.width = self.width
         print (f"width: {self.width}")
         if self.PicAngle != 0:
             self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
@@ -375,7 +368,7 @@ class Wall:
         WallLayer.append(self)  
     def Update_Hitbox(self):
         if self.PicAngle != 0:
-            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+            self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
             #New Hitbox
             #Points
             Rotate_Point = self.Hitbox.center
@@ -411,7 +404,8 @@ class Wall:
             self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
                         
         else:
-            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+            self.height = self.OriginPic.get_height()
+            self.width = self.OriginPic.get_width()
             self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)  
 #}
 
@@ -463,7 +457,7 @@ while Running == True:
             #No mess anymore
             Proportion_To_Scale_By = screen.get_width()  * Size_Difference / (Original_screen[1])
 
-            obj.OriginPic = pygame.transform.scale_by(obj.RootPic, Proportion_To_Scale_By)
+            
 
             screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y))) 
             if obj.Layer != "WallLayer":         
