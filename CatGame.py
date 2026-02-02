@@ -180,21 +180,22 @@ def MoveAndHandleCollisionCheck(obj):
             CollidedOnY = False
             if CheckObbCollisions(obj,object2) == True:
                 if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0]:
-                    if obj.yvelocity >= 0:
-                        obj.Hitbox.bottom = object2.Hitbox.top + (Ey_height + obj.width / 2 * math.radians(object2.PicAngle)) * YDirection
+                    if obj.yvelocity > 0 or abs(obj.xvelocity) > 0:
+                        obj.Hitbox.bottom = object2.Hitbox.top + (Ey_height + (obj.height / 2 * math.radians(object2.PicAngle))) * YDirection
                     CollidedOnY = True
                 #bottom
                 if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0]: 
-                    if obj.yvelocity <= 0:
-                        obj.Hitbox.top = object2.Hitbox.bottom + (Ey_height + obj.width / 2 * math.radians(object2.PicAngle)) * YDirection
+                    if obj.yvelocity < 0 or abs(obj.xvelocity) > 0:
+                        obj.Hitbox.top = object2.Hitbox.bottom + (Ey_height + (obj.height / 2 * math.radians(object2.PicAngle))) * YDirection
                     CollidedOnY = True
                 #______________________________________________________________________________
                 #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
                 if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
-                    obj.Hitbox.right = object2.Hitbox.left + (Ex_height + (obj.height / 2 * math.radians(object2.PicAngle))) * XDirection
+                    obj.Hitbox.right = object2.Hitbox.left + (Ex_height + (obj.height / 1.5 * math.radians(object2.PicAngle))) * XDirection
                 if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
-                    obj.Hitbox.left = object2.Hitbox.right + (Ex_height + (obj.height / 2 * math.radians(object2.PicAngle))) * XDirection
-
+                    obj.Hitbox.left = object2.Hitbox.right + (Ex_height + (obj.height / 1.5 * math.radians(object2.PicAngle))) * XDirection
+        obj.Update_Hitbox()
+        object2.Update_Hitbox()
 
     #Checking X collisions
     if velocity_magnitute > 0:
@@ -472,7 +473,7 @@ while Running == True:
                 adjusted_hitbox = obj.Hitbox.copy()
                 adjusted_hitbox.x -= CameraX
                 adjusted_hitbox.y -= CameraY
-                #pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
+                pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
                 pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 2)
                 if obj.PicAngle != 0:
                     pygame.draw.circle(screen, (255,0,0), (obj.Top_left_point[0] - CameraX, obj.Top_left_point[1] - CameraY),2)
