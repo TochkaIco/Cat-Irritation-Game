@@ -173,27 +173,28 @@ def MoveAndHandleCollisionCheck(obj):
                 
 
             #tan v
-            Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.radians(object2.PicAngle) * YDirection
-            Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * math.radians(object2.PicAngle) * -XDirection
+            RadAngle = math.radians(object2.PicAngle)
+            Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * RadAngle * YDirection
+            Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * RadAngle * -XDirection
             #top
             #Ok, i will first if it's below or above, then if it's actually within points
             CollidedOnY = False
             if CheckObbCollisions(obj,object2) == True:
                 if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0]:
                     if obj.yvelocity > 0 or abs(obj.xvelocity) > 0:
-                        obj.Hitbox.bottom = object2.Hitbox.top + (Ey_height + (obj.height / 2 * math.radians(object2.PicAngle))) * YDirection
+                        obj.Hitbox.bottom = object2.Hitbox.top + (Ey_height + (obj.height / 2 * math.tan(RadAngle))) * YDirection
                     CollidedOnY = True
                 #bottom
                 if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0]: 
                     if obj.yvelocity < 0 or abs(obj.xvelocity) > 0:
-                        obj.Hitbox.top = object2.Hitbox.bottom + (Ey_height + (obj.height / 2 * math.radians(object2.PicAngle))) * YDirection
+                        obj.Hitbox.top = object2.Hitbox.bottom + (Ey_height + (obj.height / 2 * math.tan(RadAngle))) * YDirection
                     CollidedOnY = True
                 #______________________________________________________________________________
                 #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
                 if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
-                    obj.Hitbox.right = object2.Hitbox.left + (Ex_height + (obj.height / 1.5 * math.radians(object2.PicAngle))) * XDirection
+                    obj.Hitbox.right = object2.Hitbox.left + (Ex_height + (obj.height / 2 * math.tan(RadAngle))) * XDirection
                 if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
-                    obj.Hitbox.left = object2.Hitbox.right + (Ex_height + (obj.height / 1.5 * math.radians(object2.PicAngle))) * XDirection
+                    obj.Hitbox.left = object2.Hitbox.right + (Ex_height + (obj.height / 2 * math.tan(RadAngle))) * XDirection
         obj.Update_Hitbox()
         object2.Update_Hitbox()
 
@@ -306,6 +307,33 @@ class Player:
                 if event.key == pygame.K_d:
                     self.xvelocity -= self.WalkSpeed    
 
+class Enemy:
+    def __init_subclass__(cls,x,y,angle):
+        cls.x = x
+        cls.xvelocity = 0
+        cls.y = y
+        cls.yvelocity = 0
+        cls.Health = cls.MaxHealth
+        
+        cls.RootPic = pygame.transform.scale_by(cls.RootPic,2)
+        cls.OriginPic = cls.RootPic
+        cls.pic = cls.OriginPic
+
+        cls.PicAngle = angle
+        cls.Hitbox = cls.OriginPic.get_rect(center= (cls.x,cls.y))
+        cls.height = cls.OriginPic.get_height()
+        cls.width = cls.OriginPic.get_width()
+        cls.Points = (cls.Hitbox.topleft, cls.Hitbox.topright,cls.Hitbox.bottomleft, cls.Hitbox.bottomright)
+
+
+    class Slime:
+        RootPic = Roman
+        MaxHealth = 200
+
+        def __init__(self):
+            
+            pass
+
 class Wall:
     Wall_Class_Picture = Roman
     def __init__(self,x,y,angle):
@@ -407,6 +435,11 @@ class Wall:
             self.height = self.OriginPic.get_height()
             self.width = self.OriginPic.get_width()
             self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)  
+
+
+
+
+
 #}
 
 #Generating BG
