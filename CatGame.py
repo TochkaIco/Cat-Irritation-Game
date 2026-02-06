@@ -520,7 +520,7 @@ while Running == True:
         print (f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Original_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
 
         #Wait wtf? why is that genuinely just not working?
-        screen.blit(HealthBar, (0,0))
+        screen.blit(HealthBar, (20,20))
         print(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
             
             
