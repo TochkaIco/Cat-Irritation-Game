@@ -15,7 +15,8 @@ display_info = pygame.display.Info()
 screen = pygame.display.set_mode((display_info.current_w,display_info.current_h),pygame.RESIZABLE)
 #Roman, you can't add RESIZABLE without having the original screen width and height
 Size_Difference = screen.get_height() / screen.get_width()
-Original_screen = 1920,1080
+# For some reason a 1920 x 1080 screen will give you 1280, 800. Just remember that
+Original_screen = 1280,800
 
 pygame.display.set_caption("Cat-Irritation-Game")
 clock = pygame.time.Clock()
@@ -26,7 +27,7 @@ debug_draw = True
 screen.fill((0, 0, 0))
 font = pygame.font.Font(None, 74)
 loading_text = font.render("Loading...", True, (255, 255, 255))
-text_rect = loading_text.get_rect(center=(1920/2, 1080/2))
+text_rect = loading_text.get_rect(center=(screen.get_width()/2,screen.get_height()/2))
 screen.blit(loading_text, text_rect)
 pygame.display.flip()
 
@@ -37,6 +38,7 @@ Roman = pygame.transform.scale_by(Roman,0.3)
 
 CatGirl = pygame.image.load("Images/Catgirl 15x38.png").convert_alpha()
 HealthBar = pygame.image.load("Images/Cat_health_bar.png").convert_alpha()
+Angy_Slime = pygame.image.load("Images/Angry_Slime.png").convert_alpha()
 #}
 
 ###LogicAspects
@@ -51,6 +53,7 @@ LoadedScene = False
 
 #Layers__--__
 PlayerLayer = []
+EnemyLayer = []
 WallLayer = []
 SpawnPoint = (MapGenerator.IslandSize/2,MapGenerator.IslandSize/2)
 
@@ -160,43 +163,44 @@ def CheckObbCollisions(obj1,obj2):
 def MoveAndHandleCollisionCheck(obj):
     velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
     for object2 in obj.InteractLayers:
-        if object2.PicAngle != 0:
+        if obj.IsTrigger == False and object2.IsTrigger == False:
+            if object2.PicAngle != 0:
+                obj.Update_Hitbox()
+                object2.Update_Hitbox()
+                if obj.Hitbox.centery < object2.Hitbox.centery: YDirection = -1 
+                else: YDirection = 1
+                if obj.Hitbox.centerx > object2.Hitbox.centerx: XDirection = 1
+                else: XDirection = -1
+                #Getting the points to compare pos to
+                if object2.Points[0][1] > object2.Points[1][1]: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][0] = object2.Points[0][1], object2.Points[3][1], object2.Points[2][0], 1
+                else: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][1], object2.Points[2][1], object2.Points[0][0], object2.Points[3][0], 0
+                    
+
+                #tan v
+                RadAngle = math.radians(object2.PicAngle)
+                Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.sin(RadAngle) * YDirection
+                Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * math.tan(RadAngle) * -XDirection
+                #top
+                #Ok, i will first if it's below or above, then if it's actually within points
+                CollidedOnY = False
+                if CheckObbCollisions(obj,object2) == True:
+                    if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0]:
+                        if obj.yvelocity > 0 or (abs(obj.xvelocity) > 0 and obj.yvelocity == 0):
+                            obj.Hitbox.bottom = object2.Hitbox.top + (Ey_height + (obj.height / 2 * math.sin(RadAngle))) * YDirection
+                        CollidedOnY = True
+                    #bottom
+                    if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0]: 
+                        if obj.yvelocity < 0 or (abs(obj.xvelocity) > 0 and obj.yvelocity == 0):
+                            obj.Hitbox.top = object2.Hitbox.bottom + (Ey_height + (obj.height / 2 * math.sin(RadAngle))) * YDirection
+                        CollidedOnY = True
+                    #______________________________________________________________________________
+                    #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
+                    if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
+                        obj.Hitbox.right = object2.Hitbox.left + (Ex_height + (obj.height * math.sin(RadAngle))) * XDirection
+                    if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
+                        obj.Hitbox.left = object2.Hitbox.right + (Ex_height + (obj.height * math.sin(RadAngle))) * XDirection
             obj.Update_Hitbox()
             object2.Update_Hitbox()
-            if obj.Hitbox.centery < object2.Hitbox.centery: YDirection = -1 
-            else: YDirection = 1
-            if obj.Hitbox.centerx > object2.Hitbox.centerx: XDirection = 1
-            else: XDirection = -1
-            #Getting the points to compare pos to
-            if object2.Points[0][1] > object2.Points[1][1]: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, = object2.Points[1][0] = object2.Points[0][1], object2.Points[3][1], object2.Points[2][0]
-            else: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint = object2.Points[1][1], object2.Points[2][1], object2.Points[0][0], object2.Points[3][0]
-                
-
-            #tan v
-            RadAngle = math.radians(object2.PicAngle)
-            Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * RadAngle * YDirection
-            Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * RadAngle * -XDirection
-            #top
-            #Ok, i will first if it's below or above, then if it's actually within points
-            CollidedOnY = False
-            if CheckObbCollisions(obj,object2) == True:
-                if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0]:
-                    if obj.yvelocity > 0 or abs(obj.xvelocity) > 0:
-                        obj.Hitbox.bottom = object2.Hitbox.top + (Ey_height + (obj.height / 2 * math.tan(RadAngle))) * YDirection
-                    CollidedOnY = True
-                #bottom
-                if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0]: 
-                    if obj.yvelocity < 0 or abs(obj.xvelocity) > 0:
-                        obj.Hitbox.top = object2.Hitbox.bottom + (Ey_height + (obj.height / 2 * math.tan(RadAngle))) * YDirection
-                    CollidedOnY = True
-                #______________________________________________________________________________
-                #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
-                if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
-                    obj.Hitbox.right = object2.Hitbox.left + (Ex_height + (obj.height / 2 * math.tan(RadAngle))) * XDirection
-                if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
-                    obj.Hitbox.left = object2.Hitbox.right + (Ex_height + (obj.height / 2 * math.tan(RadAngle))) * XDirection
-        obj.Update_Hitbox()
-        object2.Update_Hitbox()
 
     #Checking X collisions
     if velocity_magnitute > 0:
@@ -205,29 +209,32 @@ def MoveAndHandleCollisionCheck(obj):
     #Checks if it's even moving
     if obj.xvelocity != 0:
         for object2 in obj.InteractLayers:
-            #Checking if it's a slope
-            if object2.PicAngle == 0:
-                if obj.Hitbox.colliderect(object2.Hitbox):
-                    if obj.xvelocity > 0:
-                        obj.Hitbox.right = object2.Hitbox.left
-                    if obj.xvelocity < 0:
-                        obj.Hitbox.left = object2.Hitbox.right
-                    obj.x = obj.Hitbox.center[0]
+            if obj.IsTrigger == False and object2.IsTrigger == False:
+                #Checking if it's a slope
+                if object2.PicAngle == 0:
+                    if obj.Hitbox.colliderect(object2.Hitbox):
+                        if obj.xvelocity > 0:
+                            obj.Hitbox.right = object2.Hitbox.left
+                        if obj.xvelocity < 0:
+                            obj.Hitbox.left = object2.Hitbox.right
+                        obj.x = obj.Hitbox.center[0]
 
     #-
     #Checking Y collisions
     if velocity_magnitute > 0:  
         normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
         obj.Hitbox.centery += normalized_y * DeltaTime
+
     if obj.yvelocity != 0:
         for object2 in obj.InteractLayers:
-            if object2.PicAngle == 0:
-                if obj.Hitbox.colliderect(object2.Hitbox):
-                    if obj.yvelocity > 0:
-                        obj.Hitbox.bottom = object2.Hitbox.top
-                    if obj.yvelocity < 0:
-                        obj.Hitbox.top = object2.Hitbox.bottom
-                    obj.y = obj.Hitbox.center[1]
+            if obj.IsTrigger == False and object2.IsTrigger == False:
+                if object2.PicAngle == 0:
+                    if obj.Hitbox.colliderect(object2.Hitbox):
+                        if obj.yvelocity > 0:
+                            obj.Hitbox.bottom = object2.Hitbox.top
+                        if obj.yvelocity < 0:
+                            obj.Hitbox.top = object2.Hitbox.bottom
+                        obj.y = obj.Hitbox.center[1]
 
                 #_______________________________________________________________________________
 def Rotate(obj):
@@ -244,12 +251,10 @@ def UpdateCamera(target, camera_smoothness=0.1):
     CameraY += (target_y - CameraY) * camera_smoothness
 
 #Classes
-class Player:
-    Player_Class_Picture = CatGirl
-    def __init__(self,x,y):
-        #______ Adam Ohlsén
-        self.WalkSpeed = 200
-        self.MaxHealth = 100
+
+
+class Default_Object:
+    def __init__(self,x,y,angle,RootPic):
         self.Health = self.MaxHealth
         #X
         self.x = x
@@ -258,7 +263,7 @@ class Player:
         self.y = y
         self.yvelocity = 0
         #Misc
-        self.RootPic = Player.Player_Class_Picture
+        self.RootPic = RootPic
         self.RootPic = pygame.transform.scale_by(self.RootPic,2)
         self.OriginPic = self.RootPic
         self.pic = self.OriginPic
@@ -268,15 +273,31 @@ class Player:
         self.height = self.OriginPic.get_height()
         self.width = self.OriginPic.get_width()
 
-        self.PicAngle = 0
-        self.Layer = "PlayerLayer"
-        self.InteractLayers = WallLayer
+        self.PicAngle = angle
         
         #Put all __init__ logic before the append
+        Default_Objects.append(self)
+
+#---__---
+class Player(Default_Object):
+    Player_Class_Picture = CatGirl
+    MaxHealth = 100
+    def __init__(self,x,y,angle,RootPic):
+        super().__init__(x,y,angle,RootPic)
+        #______ Adam Ohlsén
+        self.WalkSpeed = 150
+        self.MaxHealth = Player.MaxHealth
+
+        self.Layer = "PlayerLayer"
+        self.InteractLayers = WallLayer + EnemyLayer
+        
+        #Put all __init__ logic before the append
+        self.IsTrigger = False
         Default_Objects.append(self)
         PlayerLayer.append(self)
     def Update_Hitbox(self):
         #This may seem stupid and redundant but we need it, just trust me
+        self.InteractLayers = WallLayer + EnemyLayer
         self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
         #
         self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
@@ -307,32 +328,30 @@ class Player:
                 if event.key == pygame.K_d:
                     self.xvelocity -= self.WalkSpeed    
 
-class Enemy:
-    def __init_subclass__(cls,x,y,angle):
-        cls.x = x
-        cls.xvelocity = 0
-        cls.y = y
-        cls.yvelocity = 0
-        cls.Health = cls.MaxHealth
+
+class Slime(Default_Object):
+    MaxHealth = 200
+    WalkSpeed = 200
+    def __init__(self,x,y,angle,RootPic):
+        super().__init__(x,y,angle,RootPic)
+        self.WalkSpeed = Slime.WalkSpeed
+        self.MaxHealth = Slime.MaxHealth
+        self.Layer = "SlimeLayer"
+        self.InteractLayers = PlayerLayer
+        EnemyLayer.append(self)
+        self.IsTrigger = True
         
-        cls.RootPic = pygame.transform.scale_by(cls.RootPic,2)
-        cls.OriginPic = cls.RootPic
-        cls.pic = cls.OriginPic
+    def Update_Hitbox(self):
+        #This may seem stupid and redundant but we need it, just trust me
+        self.InteractLayers = PlayerLayer
+        self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
+        #
+        self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
+        self.height = self.OriginPic.get_height()
+        self.width = self.OriginPic.get_width()
 
-        cls.PicAngle = angle
-        cls.Hitbox = cls.OriginPic.get_rect(center= (cls.x,cls.y))
-        cls.height = cls.OriginPic.get_height()
-        cls.width = cls.OriginPic.get_width()
-        cls.Points = (cls.Hitbox.topleft, cls.Hitbox.topright,cls.Hitbox.bottomleft, cls.Hitbox.bottomright)
 
-
-    class Slime:
-        RootPic = Roman
-        MaxHealth = 200
-
-        def __init__(self):
-            
-            pass
+TestSlime = Slime(SpawnPoint[0] - 300, SpawnPoint[1] - 200,0,Angy_Slime)
 
 class Wall:
     Wall_Class_Picture = Roman
@@ -392,6 +411,7 @@ class Wall:
             self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
             self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
 
+        self.IsTrigger = False
         Default_Objects.append(self)
         WallLayer.append(self)  
     def Update_Hitbox(self):
@@ -446,13 +466,12 @@ class Wall:
 IslandBackground = MapGenerator.Generate_Island_BG()
 
 #Misc
-DefaultPlayer = Player(SpawnPoint[0],SpawnPoint[1])
+DefaultPlayer = Player(SpawnPoint[0],SpawnPoint[1],0,CatGirl)
 tempthing = 1024
 TestWall = Wall(SpawnPoint[0], SpawnPoint[1]-300, 20)
 
 while Running == True:
     tempthing -= 1
-    #Glitch fix
     screen.fill((25, 76, 204))
 
     ##! DELETE AFTER! In a minute there will be 3600 walls!
