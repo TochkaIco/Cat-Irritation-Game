@@ -3,6 +3,8 @@
 import pygame
 import math
 import numpy as np
+
+import Classes
 #map generation import
 import MapGenerator
 
@@ -16,7 +18,7 @@ screen = pygame.display.set_mode((display_info.current_w,display_info.current_h)
 #Roman, you can't add RESIZABLE without having the original screen width and height
 Size_Difference = screen.get_height() / screen.get_width()
 # For some reason a 1920 x 1080 screen will give you 1280, 800. Just remember that
-Original_screen = 1280,800
+Default_screen = 1280,800
 
 pygame.display.set_caption("Cat-Irritation-Game")
 clock = pygame.time.Clock()
@@ -47,14 +49,10 @@ Angy_Slime = pygame.image.load("Images/Angry_Slime.png").convert_alpha()
 #{
 Running = True
 
-Default_Objects = []
 Scene = "MainScene"
 LoadedScene = False
 
 #Layers__--__
-PlayerLayer = []
-EnemyLayer = []
-WallLayer = []
 SpawnPoint = (MapGenerator.IslandSize/2,MapGenerator.IslandSize/2)
 
 #Camera
@@ -163,7 +161,7 @@ def CheckObbCollisions(obj1,obj2):
 def MoveAndHandleCollisionCheck(obj):
     velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
     for object2 in obj.InteractLayers:
-        if obj.IsTrigger == False and object2.IsTrigger == False:
+        if object2.IsTrigger == False:
             if object2.PicAngle != 0:
                 obj.Update_Hitbox()
                 object2.Update_Hitbox()
@@ -188,19 +186,19 @@ def MoveAndHandleCollisionCheck(obj):
                 if CheckObbCollisions(obj,object2) == True:
                     if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0]:
                         if obj.yvelocity > 0 or (abs(obj.xvelocity) > 0 and obj.yvelocity == 0):
-                            obj.Hitbox.bottom = object2.Hitbox.centery + (Yadd + Ey_height + (obj.width / 2 * math.tan(RadAngle))) * YDirection
+                            obj.Hitbox.bottom = object2.Hitbox.centery + (Yadd + Ey_height + (obj.width / 2 * math.tan(RadAngle))-1) * YDirection
                         CollidedOnY = True
                     #bottom
                     if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0]: 
                         if obj.yvelocity < 0 or (abs(obj.xvelocity) > 0 and obj.yvelocity == 0):
-                            obj.Hitbox.top = object2.Hitbox.centery + (Yadd + Ey_height + (obj.width / 2 * math.tan(RadAngle))) * YDirection
+                            obj.Hitbox.top = object2.Hitbox.centery + (Yadd + Ey_height + (obj.width / 2 * math.tan(RadAngle))-1) * YDirection
                         CollidedOnY = True
                     #______________________________________________________________________________
                     #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
                     if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
-                        obj.Hitbox.right = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))) * XDirection
+                        obj.Hitbox.right = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))-1) * XDirection
                     if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
-                        obj.Hitbox.left = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))) * XDirection
+                        obj.Hitbox.left = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))-1) * XDirection
             obj.Update_Hitbox()
             object2.Update_Hitbox()
 
@@ -255,221 +253,19 @@ def UpdateCamera(target, camera_smoothness=0.1):
 #Classes
 
 
-class Default_Object:
-    def __init__(self,x,y,angle,RootPic):
-        self.Health = self.MaxHealth
-        #X
-        self.x = x
-        self.xvelocity = 0
-        #Y
-        self.y = y
-        self.yvelocity = 0
-        #Misc
-        self.RootPic = RootPic
-        self.RootPic = pygame.transform.scale_by(self.RootPic,2)
-        self.OriginPic = self.RootPic
-        self.pic = self.OriginPic
-        #Hitbox
-        self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
-        self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
-        self.height = self.OriginPic.get_height()
-        self.width = self.OriginPic.get_width()
-
-        self.PicAngle = angle
-        
-        #Put all __init__ logic before the append
-        Default_Objects.append(self)
-
-#---__---
-class Player(Default_Object):
-    Player_Class_Picture = CatGirl
-    MaxHealth = 100
-    def __init__(self,x,y,angle,RootPic):
-        super().__init__(x,y,angle,RootPic)
-        #______ Adam Ohlsén
-        self.WalkSpeed = 300
-        self.MaxHealth = Player.MaxHealth
-
-        self.Layer = "PlayerLayer"
-        self.InteractLayers = WallLayer + EnemyLayer
-        
-        #Put all __init__ logic before the append
-        self.IsTrigger = False
-        PlayerLayer.append(self)
-    def Update_Hitbox(self):
-        #This may seem stupid and redundant but we need it, just trust me
-        self.InteractLayers = WallLayer + EnemyLayer
-        self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
-        #
-        self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
-        self.height = self.OriginPic.get_height()
-        self.width = self.OriginPic.get_width()
-
-
-    def Control_Player(self):
-        for event in PyEvents:
-            #-                                      -#
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_w:
-                    self.yvelocity += -self.WalkSpeed
-                if event.key == pygame.K_s:
-                    self.yvelocity += self.WalkSpeed
-                if event.key == pygame.K_a:
-                    self.xvelocity += -self.WalkSpeed
-                if event.key == pygame.K_d:
-                    self.xvelocity += self.WalkSpeed
-            #-                                      -#
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_w:
-                    self.yvelocity -= -self.WalkSpeed
-                if event.key == pygame.K_s:
-                    self.yvelocity -= self.WalkSpeed
-                if event.key == pygame.K_a:
-                    self.xvelocity -= -self.WalkSpeed
-                if event.key == pygame.K_d:
-                    self.xvelocity -= self.WalkSpeed    
-
-
-class Slime(Default_Object):
-    MaxHealth = 200
-    WalkSpeed = 200
-    def __init__(self,x,y,angle,RootPic):
-        super().__init__(x,y,angle,RootPic)
-        self.WalkSpeed = Slime.WalkSpeed
-        self.MaxHealth = Slime.MaxHealth
-        self.Layer = "SlimeLayer"
-        self.InteractLayers = PlayerLayer
-        EnemyLayer.append(self)
-        self.IsTrigger = True
-        
-    def Update_Hitbox(self):
-        #This may seem stupid and redundant but we need it, just trust me
-        self.InteractLayers = PlayerLayer
-        self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
-        #
-        self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
-        self.height = self.OriginPic.get_height()
-        self.width = self.OriginPic.get_width()
-
-
-TestSlime = Slime(SpawnPoint[0] - 300, SpawnPoint[1] - 200,0,Angy_Slime)
-
-class Wall:
-    Wall_Class_Picture = Roman
-    def __init__(self,x,y,angle):
-        #X and Y
-        self.x = x
-        self.y = y
-
-        #Misc
-        self.RootPic = Wall.Wall_Class_Picture
-        self.RootPic = pygame.transform.scale_by(self.RootPic,2)
-        self.OriginPic = self.RootPic
-        self.pic = self.OriginPic
-        self.PicAngle = angle
-        self.Layer = "WallLayer"
-        self.height = self.OriginPic.get_height()
-        print (f"height: {self.height}")
-        self.width = self.OriginPic.get_width()
-        print (f"width: {self.width}")
-        if self.PicAngle != 0:
-            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
-            #New Hitbox
-            #Points
-            Rotate_Point = self.Hitbox.center
-            Original_Top_left = (self.Hitbox.topleft)
-            Original_Top_right = (self.Hitbox.topright)
-            Original_Bottom_left = (self.Hitbox.bottomleft)
-            Original_Bottom_right = (self.Hitbox.bottomright)
-            #Maths
-            Radians_angle = math.radians(self.PicAngle)
-            cos_rad = math.cos(Radians_angle)
-            sin_rad = math.sin(Radians_angle)
-            #Top
-            Top_Left_Offset_X = (Original_Top_left[0] - Rotate_Point[0])
-            Top_Left_Offset_Y = (Original_Top_left[1] - Rotate_Point[1])
-            Top_Right_Offset_X = (Original_Top_right[0] - Rotate_Point[0])
-            Top_Right_Offset_Y = (Original_Top_right[1] - Rotate_Point[1])
-            #Bottom
-            Bottom_Left_Offset_X = (Original_Bottom_left[0] - Rotate_Point[0])
-            Bottom_Left_Offset_Y = (Original_Bottom_left[1] - Rotate_Point[1])
-            Bottom_Right_Offset_X = (Original_Bottom_right[0] - Rotate_Point[0])
-            Bottom_Right_Offset_Y = (Original_Bottom_right[1] - Rotate_Point[1])
-
-            #Calculating points
-            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
-            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
-            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
-            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
-            
-            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
-                        
-        else:
-            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
-            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
-
-        self.IsTrigger = False
-        Default_Objects.append(self)
-        WallLayer.append(self)  
-    def Update_Hitbox(self):
-        if self.PicAngle != 0:
-            self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
-            #New Hitbox
-            #Points
-            Rotate_Point = self.Hitbox.center
-            Original_Top_left = (self.Hitbox.topleft)
-            Original_Top_right = (self.Hitbox.topright)
-            Original_Bottom_left = (self.Hitbox.bottomleft)
-            Original_Bottom_right = (self.Hitbox.bottomright)
-            #Maths
-            Radians_angle = math.radians(self.PicAngle)
-            cos_rad = math.cos(Radians_angle)
-            sin_rad = math.sin(Radians_angle)
-            #Top
-            Top_Left_Offset_X = (Original_Top_left[0] - Rotate_Point[0])
-            Top_Left_Offset_Y = (Original_Top_left[1] - Rotate_Point[1])
-            Top_Right_Offset_X = (Original_Top_right[0] - Rotate_Point[0])
-            Top_Right_Offset_Y = (Original_Top_right[1] - Rotate_Point[1])
-            #Bottom
-            Bottom_Left_Offset_X = (Original_Bottom_left[0] - Rotate_Point[0])
-            Bottom_Left_Offset_Y = (Original_Bottom_left[1] - Rotate_Point[1])
-            Bottom_Right_Offset_X = (Original_Bottom_right[0] - Rotate_Point[0])
-            Bottom_Right_Offset_Y = (Original_Bottom_right[1] - Rotate_Point[1])
-
-            #Calculating points
-            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
-                                (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
-            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
-                                (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
-            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
-                                (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
-            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
-                                (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
-            
-            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
-                        
-        else:
-            self.height = self.OriginPic.get_height()
-            self.width = self.OriginPic.get_width()
-            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)  
-
-
-
-
 
 #}
 
 #Generating BG
 IslandBackground = MapGenerator.Generate_Island_BG()
+#Somehow scaling by 2 messes up the Island? Wtf? Im not going to bother..
+IslandBackground = pygame.transform.scale_by(IslandBackground,1)
 
 #Misc
-DefaultPlayer = Player(SpawnPoint[0],SpawnPoint[1],0,CatGirl)
+DefaultPlayer = Classes.Player(SpawnPoint[0],SpawnPoint[1],0,CatGirl)
 tempthing = 1024
-TestWall = Wall(SpawnPoint[0], SpawnPoint[1]-300, 20)
+TestWall = Classes.Wall(SpawnPoint[0], SpawnPoint[1]-300, 20,Roman)
+TestSlime = Classes.Slime(SpawnPoint[0] - 300, SpawnPoint[1] - 200,0,Angy_Slime)
 
 while Running == True:
     tempthing -= 1
@@ -498,17 +294,19 @@ while Running == True:
                     debug_draw = not debug_draw
                     print("Debug Draw", debug_draw)
         
-        DefaultPlayer.Control_Player()
+        DefaultPlayer.Control_Player(PyEvents)
         UpdateCamera(DefaultPlayer, camera_smoothness=0.15)
         screen.blit(IslandBackground, (-CameraX, -CameraY))
 
-        for obj in Default_Objects:
+        for obj in Classes.Default_Objects:
             Rotate(obj)
+            if obj.Layer != "WallLayer":
+                obj.Update_Obj_specific()
             
             screen_x = obj.Hitbox.centerx - CameraX
             screen_y = obj.Hitbox.centery - CameraY
             #No mess anymore
-            Proportion_To_Scale_By = screen.get_width()  * Size_Difference / (Original_screen[1])
+            Proportion_To_Scale_By = screen.get_width()  * Size_Difference / (Default_screen[1])
 
             
 
@@ -537,7 +335,7 @@ while Running == True:
                     pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 10)
 
         #The player healthbar, maybeeee i should've made a ui class but it's like 24:00
-        print (f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Original_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
+        print (f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Default_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
 
         #Wait wtf? why is that genuinely just not working?
         screen.blit(HealthBar, (20,20))
