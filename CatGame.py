@@ -173,32 +173,34 @@ def MoveAndHandleCollisionCheck(obj):
                 else: XDirection = -1
                 #Getting the points to compare pos to
                 if object2.Points[0][1] > object2.Points[1][1]: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][0] = object2.Points[0][1], object2.Points[3][1], object2.Points[2][0], 1
-                else: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][1], object2.Points[2][1], object2.Points[0][0], object2.Points[3][0], 0
-                    
+                else: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][1], object2.Points[2][1], object2.Points[0][0], object2.Points[3][0], 0     
 
                 #tan v
                 RadAngle = math.radians(object2.PicAngle)
-                Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.sin(RadAngle) * YDirection
+                Xadd = object2.width / 2 + (object2.width / 2 * math.tan(RadAngle)) * math.tan(RadAngle/2)
+                Yadd = object2.height / 2 + (object2.height / 2 * math.tan(RadAngle)) * math.tan(RadAngle/2)
+                print(f"Xadd ={Xadd}")
+                Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.tan(RadAngle) * YDirection
                 Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * math.tan(RadAngle) * -XDirection
                 #top
-                #Ok, i will first if it's below or above, then if it's actually within points
+                #Eye of rahh checks if the obj is below or above (might be redundant)
                 CollidedOnY = False
                 if CheckObbCollisions(obj,object2) == True:
                     if obj.Hitbox.centery < TopYPoint and obj.Points[0][0] < object2.Points[1][0] and obj.Points[1][0] > object2.Points[0][0]:
                         if obj.yvelocity > 0 or (abs(obj.xvelocity) > 0 and obj.yvelocity == 0):
-                            obj.Hitbox.bottom = object2.Hitbox.top + (Ey_height + (obj.height / 2 * math.sin(RadAngle))) * YDirection
+                            obj.Hitbox.bottom = object2.Hitbox.centery + (Yadd + Ey_height + (obj.width / 2 * math.tan(RadAngle))) * YDirection
                         CollidedOnY = True
                     #bottom
                     if obj.Hitbox.centery > BottomYPoint and obj.Points[2][0] < object2.Points[3][0] and obj.Points[3][0] > object2.Points[2][0]: 
                         if obj.yvelocity < 0 or (abs(obj.xvelocity) > 0 and obj.yvelocity == 0):
-                            obj.Hitbox.top = object2.Hitbox.bottom + (Ey_height + (obj.height / 2 * math.sin(RadAngle))) * YDirection
+                            obj.Hitbox.top = object2.Hitbox.centery + (Yadd + Ey_height + (obj.width / 2 * math.tan(RadAngle))) * YDirection
                         CollidedOnY = True
                     #______________________________________________________________________________
                     #Note to future me: since we know it did or didn't collide on Y axis we can give permission to collide on x axis
                     if obj.Hitbox.centerx < LeftXPoint and CollidedOnY == False and obj.xvelocity >= 0:
-                        obj.Hitbox.right = object2.Hitbox.left + (Ex_height + (obj.height * math.sin(RadAngle))) * XDirection
+                        obj.Hitbox.right = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))) * XDirection
                     if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
-                        obj.Hitbox.left = object2.Hitbox.right + (Ex_height + (obj.height * math.sin(RadAngle))) * XDirection
+                        obj.Hitbox.left = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))) * XDirection
             obj.Update_Hitbox()
             object2.Update_Hitbox()
 
@@ -285,7 +287,7 @@ class Player(Default_Object):
     def __init__(self,x,y,angle,RootPic):
         super().__init__(x,y,angle,RootPic)
         #______ Adam Ohlsén
-        self.WalkSpeed = 150
+        self.WalkSpeed = 300
         self.MaxHealth = Player.MaxHealth
 
         self.Layer = "PlayerLayer"
@@ -293,7 +295,6 @@ class Player(Default_Object):
         
         #Put all __init__ logic before the append
         self.IsTrigger = False
-        Default_Objects.append(self)
         PlayerLayer.append(self)
     def Update_Hitbox(self):
         #This may seem stupid and redundant but we need it, just trust me
