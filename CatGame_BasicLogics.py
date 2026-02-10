@@ -28,8 +28,8 @@ def Move_and_Collide_preset(obj):
                 if Func != None:
                     Func(obj,object2)
             else:
-                obj.Health -= object2.Damage
-                direction = math.atan2(obj.Hitbox.centery - object2.Hitbox.centery,obj.Hitbox.centerx - object2.Hitbox.centerx)
+                Damage(obj,object2)
+                #direction = math.atan2(obj.Hitbox.centery - object2.Hitbox.centery,obj.Hitbox.centerx - object2.Hitbox.centerx)
                 #Obj_Logic_Handler.Apply_knockback(obj,object2.KnockBack,direction,knockbacktime=0.1)
 
 
@@ -111,7 +111,7 @@ def Check_Collisions(obj,object2,MoveAxis):
         Func = Angled_Collision_React
     else:
         Collided = obj.Hitbox.colliderect(object2.Hitbox)
-        print(f"{obj} and {object2} collided")
+        #print(f"{obj} and {object2} collided")
         if MoveAxis == "X":
             Func = XCollision_React_0
         elif MoveAxis == "Y":
@@ -177,7 +177,40 @@ def YCollision_React_0(obj,object2):
 
 #Knockback
 #
+def Damage(obj,object2):
+    #Checks if obj1 has already been damaged by object2
+    for i_frame_tracker in object2.Sex_offenders_list:
+        print(f"Victim: {i_frame_tracker.victim}")
+        print(f"obj: {obj}")
+        if i_frame_tracker.victim == obj:
+            return None
+    obj.Health -= object2.Damage
+    print(f"Obj health ={obj.Health}")
+    obj_iframe_tracker(object2,obj)
+    
+
+
 #- TrackList
+
+#Hey, Roman and Fedor. Im bored so i named them this, change the names later ig.
+#It does get a bit confusing but oh well.
+class obj_iframe_tracker:
+    def __init__(self,sex_offender,victim):
+        self.time_since_hit = 0
+        self.sex_offender = sex_offender
+        self.victim = victim
+        print(self.victim)
+        #Adds a iframe tracker object
+        sex_offender.Sex_offenders_list.append(self)
+    
+    def Update_time(self,DL_T):
+        self.time_since_hit += DL_T
+        if self.time_since_hit > self.victim.I_frames:
+            self.sex_offender.Sex_offenders_list.remove(self)
+            del self
+        
+
+
 class Kn_log:
     objlist = []
     powerlist = []

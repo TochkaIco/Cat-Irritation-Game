@@ -43,6 +43,7 @@ Roman = pygame.transform.scale_by(Roman,0.3)
 
 CatGirl = pygame.image.load("Images/Catgirl 15x38.png").convert_alpha()
 HealthBar = pygame.image.load("Images/Cat_health_bar.png").convert_alpha()
+HealthBar_Inside = pygame.image.load("Images/Cat_health_bar_Insides.png").convert_alpha()
 Angy_Slime = pygame.image.load("Images/Angry_Slime.png").convert_alpha()
 #}
 
@@ -143,6 +144,7 @@ while Running == True:
         Log.Obj_Logic_Handler.Knockback()
 
         for obj in Classes.Default_Objects:
+            obj.Update_class(DeltaTime)
             Rotate(obj)
             obj.Update_Obj_specific()
             
@@ -177,6 +179,10 @@ while Running == True:
         print (f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Default_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
 
         #Wait wtf? why is that genuinely just not working?
+        if (DefaultPlayer.Health) > 0:
+            cropped_health_inner = pygame.Surface((334 * (DefaultPlayer.Health / DefaultPlayer.MaxHealth),99),pygame.SRCALPHA)
+            cropped_health_inner.blit(HealthBar_Inside,(0,0))
+            screen.blit(cropped_health_inner,(20,20))
         screen.blit(HealthBar, (20,20))
         print(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
             

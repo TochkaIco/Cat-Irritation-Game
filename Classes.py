@@ -14,6 +14,7 @@ class Default_Object:
         self.Health = self.MaxHealth
         self.Damage = Damage
         self.KnockBack = KnockBack
+        self.I_frames = 1
         #X
         self.AbleToMove = True
         self.WalkSpeed = WalkSpeed
@@ -28,6 +29,9 @@ class Default_Object:
         self.OriginPic = self.RootPic
         self.pic = self.OriginPic
 
+        self.I_frames = 0.3 #(Measured in seconds)
+        self.Sex_offenders_list = []
+
         # (list of miscellaneous functions to start every frame)
         self.StartFunctions = []
         #Hitbox
@@ -40,6 +44,13 @@ class Default_Object:
         
         #Put all __init__ logic before the append
         Default_Objects.append(self)
+    def Update_class(self,DeltaTime):
+        self.Update_i_frame(DeltaTime)
+
+    def Update_i_frame(self,DeltaTime):
+        for Counter in self.Sex_offenders_list:
+            Counter.Update_time(DeltaTime)
+    
     def Update_Hitbox(self):
         #This may seem stupid and redundant but we need it, just trust me
         if self.PicAngle == 0:
@@ -94,7 +105,7 @@ class Player(Default_Object):
         self.InteractLayers = WallLayer + EnemyLayer
         self.ApplySpeed = False
         self.temp_xvel = 0
-        self.temp_yvel = 0
+        self.temp_yvel = 0 
         
         #Put all __init__ logic before the append
         self.IsTrigger = True
@@ -235,4 +246,7 @@ class Wall:
             self.width = self.OriginPic.get_width()
             self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)  
     def Update_Obj_specific(self):
+        pass
+    
+    def Update_class(self,DeltaTime):
         pass
