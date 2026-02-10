@@ -29,8 +29,6 @@ def Move_and_Collide_preset(obj):
                     Func(obj,object2)
             else:
                 Damage(obj,object2)
-                #direction = math.atan2(obj.Hitbox.centery - object2.Hitbox.centery,obj.Hitbox.centerx - object2.Hitbox.centerx)
-                #Obj_Logic_Handler.Apply_knockback(obj,object2.KnockBack,direction,knockbacktime=0.1)
 
 
 #--
@@ -185,6 +183,8 @@ def Damage(obj,object2):
         if i_frame_tracker.victim == obj:
             return None
     obj.Health -= object2.Damage
+    direction = math.atan2(obj.Hitbox.centery - object2.Hitbox.centery,obj.Hitbox.centerx - object2.Hitbox.centerx)
+    Obj_Logic_Handler.Apply_knockback(obj,object2.KnockBack,direction,knockbacktime=object2.KnockBackTime,Should_stun=False)
     print(f"Obj health ={obj.Health}")
     obj_iframe_tracker(object2,obj)
     
@@ -203,8 +203,8 @@ class obj_iframe_tracker:
         #Adds a iframe tracker object
         sex_offender.Sex_offenders_list.append(self)
     
-    def Update_time(self,DL_T):
-        self.time_since_hit += DL_T
+    def Update_time(self):
+        self.time_since_hit += DeltaTime
         if self.time_since_hit > self.victim.I_frames:
             self.sex_offender.Sex_offenders_list.remove(self)
             del self
@@ -218,6 +218,7 @@ class Kn_log:
     knockback_time = []
     current_time = []
     Added = []
+    Should_Stun = []
     def remove_ob(ob_num):
         Kn_log.objlist.pop(ob_num)
         Kn_log.powerlist.pop(ob_num)
@@ -225,19 +226,21 @@ class Kn_log:
         Kn_log.knockback_time.pop(ob_num)
         Kn_log.current_time.pop(ob_num)
         Kn_log.Added.pop(ob_num)
+        Kn_log.Should_Stun.pop(ob_num)
 
 #Bigger Logic Handler
 class Obj_Logic_Handler:
 
     #Knockback in logic handler
     #-_-
-    def Apply_knockback(obj,power,direction,knockbacktime):
+    def Apply_knockback(obj,power,direction,knockbacktime,Should_stun):
         Kn_log.objlist.append(obj)
         Kn_log.powerlist.append(power)
         Kn_log.directionlist.append(direction)
         Kn_log.knockback_time.append(knockbacktime)
         Kn_log.current_time.append(0)
         Kn_log.Added.append(False)
+        Kn_log.Should_Stun.append(Should_stun)
 
     def Knockback():
         ob_num = 0
@@ -245,13 +248,15 @@ class Obj_Logic_Handler:
 
             if Kn_log.current_time[ob_num] < Kn_log.knockback_time[ob_num]:
                 Kn_log.current_time[ob_num] += DeltaTime
-                obj.xvelocity = Kn_log.powerlist[ob_num] * math.cos(Kn_log.directionlist[ob_num])
-                obj.yvelocity = Kn_log.powerlist[ob_num] * math.sin(Kn_log.directionlist[ob_num])
-                obj.AbleToMove = False
+                obj.xvelocity += Kn_log.powerlist[ob_num] * math.cos(Kn_log.directionlist[ob_num])
+                obj.yvelocity += Kn_log.powerlist[ob_num] * math.sin(Kn_log.directionlist[ob_num])
+                if Kn_log.Should_Stun[ob_num] == True:
+                    obj.AbleToMove = False
             else:
                 obj.xvelocity = 0
                 obj.yvelocity = 0
-                obj.AbleToMove = True
+                if Kn_log.Should_Stun[ob_num] == True:
+                    obj.AbleToMove = True
                 Kn_log.remove_ob(ob_num)
 
             ob_num += 1

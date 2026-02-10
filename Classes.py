@@ -9,11 +9,13 @@ EnemyLayer = []
 WallLayer = []
 
 class Default_Object:
-    def __init__(self,x,y,angle,RootPic,MaxHealth,WalkSpeed,Damage,KnockBack):
+    def __init__(self,x,y,angle,RootPic,MaxHealth,WalkSpeed,Damage,KnockBack,KnockBackTime):
         self.MaxHealth = MaxHealth
         self.Health = self.MaxHealth
         self.Damage = Damage
         self.KnockBack = KnockBack
+        self.KnockBackTime = KnockBackTime
+
         self.I_frames = 1
         #X
         self.AbleToMove = True
@@ -44,12 +46,12 @@ class Default_Object:
         
         #Put all __init__ logic before the append
         Default_Objects.append(self)
-    def Update_class(self,DeltaTime):
-        self.Update_i_frame(DeltaTime)
+    def Update_class(self):
+        self.Update_i_frame()
 
-    def Update_i_frame(self,DeltaTime):
+    def Update_i_frame(self):
         for Counter in self.Sex_offenders_list:
-            Counter.Update_time(DeltaTime)
+            Counter.Update_time()
     
     def Update_Hitbox(self):
         #This may seem stupid and redundant but we need it, just trust me
@@ -98,7 +100,7 @@ class Default_Object:
 class Player(Default_Object):
     def __init__(self,x,y,angle,RootPic):
         #Btw in this case damage would be if you give the player minecraft thorns enchantment
-        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300,Damage=0,KnockBack=100)
+        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300,Damage=0,KnockBack=100,KnockBackTime=0.2)
         #______ Adam Ohlsén
 
         self.Layer = "PlayerLayer"
@@ -148,7 +150,7 @@ class Player(Default_Object):
 
 class Slime(Default_Object):
     def __init__(self,x,y,angle,RootPic):
-        super().__init__(x,y,angle,RootPic, MaxHealth=200,Damage=20,WalkSpeed=200,KnockBack=20)
+        super().__init__(x,y,angle,RootPic, MaxHealth=200,Damage=20,WalkSpeed=200,KnockBack=0.5,KnockBackTime=0.04)
         self.Layer = "SlimeLayer"
         self.InteractLayers = WallLayer + PlayerLayer
         EnemyLayer.append(self)
@@ -248,5 +250,5 @@ class Wall:
     def Update_Obj_specific(self):
         pass
     
-    def Update_class(self,DeltaTime):
+    def Update_class(self):
         pass

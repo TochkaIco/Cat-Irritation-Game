@@ -144,7 +144,7 @@ while Running == True:
         Log.Obj_Logic_Handler.Knockback()
 
         for obj in Classes.Default_Objects:
-            obj.Update_class(DeltaTime)
+            obj.Update_class()
             Rotate(obj)
             obj.Update_Obj_specific()
             
