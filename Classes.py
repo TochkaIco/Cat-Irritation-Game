@@ -1,5 +1,6 @@
 import pygame
 import math
+import CatGame_BasicLogics as Log
 pygame.init()
 
 Default_Objects = []
@@ -8,9 +9,11 @@ EnemyLayer = []
 WallLayer = []
 
 class Default_Object:
-    def __init__(self,x,y,angle,RootPic):
+    def __init__(self,x,y,angle,RootPic,MaxHealth,WalkSpeed):
+        self.MaxHealth = MaxHealth
         self.Health = self.MaxHealth
         #X
+        self.WalkSpeed = WalkSpeed
         self.x = x
         self.xvelocity = 0
         #Y
@@ -72,12 +75,9 @@ class Default_Object:
 
 #---__---
 class Player(Default_Object):
-    MaxHealth = 100
     def __init__(self,x,y,angle,RootPic):
-        super().__init__(x,y,angle,RootPic)
+        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300)
         #______ Adam Ohlsén
-        self.WalkSpeed = 300
-        self.MaxHealth = Player.MaxHealth
 
         self.Layer = "PlayerLayer"
         self.InteractLayers = WallLayer + EnemyLayer
@@ -87,6 +87,7 @@ class Player(Default_Object):
         PlayerLayer.append(self)
     def Update_Obj_specific(self):
         self.InteractLayers = WallLayer + EnemyLayer
+        Log.Move_and_Collide_preset(self)
 
 
     def Control_Player(self,PyEvents):
@@ -114,12 +115,8 @@ class Player(Default_Object):
 
 
 class Slime(Default_Object):
-    MaxHealth = 200
-    WalkSpeed = 200
     def __init__(self,x,y,angle,RootPic):
-        super().__init__(x,y,angle,RootPic)
-        self.WalkSpeed = Slime.WalkSpeed
-        self.MaxHealth = Slime.MaxHealth
+        super().__init__(x,y,angle,RootPic, MaxHealth=200, WalkSpeed=200)
         self.Layer = "SlimeLayer"
         self.InteractLayers = WallLayer + PlayerLayer
         EnemyLayer.append(self)
@@ -216,3 +213,5 @@ class Wall:
             self.height = self.OriginPic.get_height()
             self.width = self.OriginPic.get_width()
             self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)  
+    def Update_Obj_specific(self):
+        pass
