@@ -13,6 +13,7 @@ n = 15
 min_r = 0.8
 extra_points = 1000
 jaggedness = 0.25
+num_flowers = 1000
 water_color = [25, 76, 204]  #Water color (blue)
 ground_color = [25, 153, 51]  #Ground color (green)
 
@@ -75,7 +76,6 @@ def Generate_Island_BG():
     flower_sprites = load_flowers("Images/Flowers")
     
     if flower_sprites:
-        num_flowers = 1000
         placed = 0
         
         while placed < num_flowers:

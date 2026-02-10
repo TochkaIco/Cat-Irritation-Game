@@ -37,11 +37,25 @@ Velocity normalization combined with clamped DeltaTime to maintain consistent mo
 Cat-Irritation-Game/
 ├── Images/
 │   └── Roman-Verde.png
+│   └── Angry_Slime.png
+│   └── Cat_health_bar.png
+│   └── Catgirl 15x38.png
+│   └── Flowers/
+│       └── Flower1.png
+│       └── Flower2.png
+│   └── Prefabs/
+│       └── BlackMarker.png
+│       └── BlueMarker.png
+│       └── GreenMarker.png
+│       └── RedMarker.png
 ├── dev_setup/
 │   └── dev_setup.py
 ├── .gitignore
 ├── CatGame.py                # 🧠main script
+├── CatGame_BasicLogics.py
 ├── MapGenerator.py
+├── Classes.py
+├── PrefabManager.py
 ├── README.md
 ├── requirements.txt
 ```
