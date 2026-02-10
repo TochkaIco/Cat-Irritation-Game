@@ -97,10 +97,6 @@ def UpdateCamera(target, camera_smoothness=0.1):
     CameraX += (target_x - CameraX) * camera_smoothness
     CameraY += (target_y - CameraY) * camera_smoothness
 
-#Classes
-
-
-
 #}
 
 #Generating BG
@@ -144,6 +140,7 @@ while Running == True:
         DefaultPlayer.Control_Player(PyEvents)
         UpdateCamera(DefaultPlayer, camera_smoothness=0.15)
         screen.blit(IslandBackground, (-CameraX, -CameraY))
+        Log.Obj_Logic_Handler.Knockback()
 
         for obj in Classes.Default_Objects:
             Rotate(obj)

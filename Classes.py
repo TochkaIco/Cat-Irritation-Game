@@ -9,10 +9,13 @@ EnemyLayer = []
 WallLayer = []
 
 class Default_Object:
-    def __init__(self,x,y,angle,RootPic,MaxHealth,WalkSpeed):
+    def __init__(self,x,y,angle,RootPic,MaxHealth,WalkSpeed,Damage,KnockBack):
         self.MaxHealth = MaxHealth
         self.Health = self.MaxHealth
+        self.Damage = Damage
+        self.KnockBack = KnockBack
         #X
+        self.AbleToMove = True
         self.WalkSpeed = WalkSpeed
         self.x = x
         self.xvelocity = 0
@@ -24,6 +27,9 @@ class Default_Object:
         self.RootPic = pygame.transform.scale_by(self.RootPic,2)
         self.OriginPic = self.RootPic
         self.pic = self.OriginPic
+
+        # (list of miscellaneous functions to start every frame)
+        self.StartFunctions = []
         #Hitbox
         self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
         self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
@@ -70,53 +76,68 @@ class Default_Object:
                                    (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
             
             self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+    
+
+
+
 
         
 
 #---__---
 class Player(Default_Object):
     def __init__(self,x,y,angle,RootPic):
-        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300)
+        #Btw in this case damage would be if you give the player minecraft thorns enchantment
+        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300,Damage=0,KnockBack=100)
         #______ Adam Ohlsén
 
         self.Layer = "PlayerLayer"
         self.InteractLayers = WallLayer + EnemyLayer
+        self.ApplySpeed = False
+        self.temp_xvel = 0
+        self.temp_yvel = 0
         
         #Put all __init__ logic before the append
         self.IsTrigger = True
         PlayerLayer.append(self)
     def Update_Obj_specific(self):
+
         self.InteractLayers = WallLayer + EnemyLayer
+        print(self.InteractLayers)
         Log.Move_and_Collide_preset(self)
 
 
     def Control_Player(self,PyEvents):
         for event in PyEvents:
-            #-                                      -#
+            #-                                   -#
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
-                    self.yvelocity += -self.WalkSpeed
+                    self.temp_yvel += -self.WalkSpeed
                 if event.key == pygame.K_s:
-                    self.yvelocity += self.WalkSpeed
+                    self.temp_yvel += self.WalkSpeed
                 if event.key == pygame.K_a:
-                    self.xvelocity += -self.WalkSpeed
+                    self.temp_xvel += -self.WalkSpeed
                 if event.key == pygame.K_d:
-                    self.xvelocity += self.WalkSpeed
+                    self.temp_xvel += self.WalkSpeed
             #-                                      -#
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
-                    self.yvelocity -= -self.WalkSpeed
+                    self.temp_yvel -= -self.WalkSpeed
                 if event.key == pygame.K_s:
-                    self.yvelocity -= self.WalkSpeed
+                    self.temp_yvel -= self.WalkSpeed
                 if event.key == pygame.K_a:
-                    self.xvelocity -= -self.WalkSpeed
+                    self.temp_xvel -= -self.WalkSpeed
                 if event.key == pygame.K_d:
-                    self.xvelocity -= self.WalkSpeed    
+                    self.temp_xvel -= self.WalkSpeed  
+        self.xvelocity = 0
+        self.yvelocity = 0
+        if self.AbleToMove == True:
+            self.xvelocity += self.temp_xvel
+            self.yvelocity += self.temp_yvel
 
 
 class Slime(Default_Object):
     def __init__(self,x,y,angle,RootPic):
-        super().__init__(x,y,angle,RootPic, MaxHealth=200, WalkSpeed=200)
+        super().__init__(x,y,angle,RootPic, MaxHealth=200,Damage=20,WalkSpeed=200,KnockBack=20)
         self.Layer = "SlimeLayer"
         self.InteractLayers = WallLayer + PlayerLayer
         EnemyLayer.append(self)

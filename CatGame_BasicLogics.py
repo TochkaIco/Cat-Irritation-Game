@@ -3,7 +3,10 @@ from pygame import time
 from pygame import rect
 clock = time.Clock()
 DeltaTime = 0.1
-
+# Collision logic
+#
+#--
+#Regular player preset for collision and other logic, change as necessary
 def Move_and_Collide_preset(obj):
     #- Xvalue
     velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
@@ -12,7 +15,7 @@ def Move_and_Collide_preset(obj):
         obj.Hitbox.x += normalized_x * DeltaTime   
     for object2 in obj.InteractLayers:
         Collided, Func = Check_Collisions(obj,object2,"X")
-        if Collided == True and Func != None:
+        if Collided == True and Func != None and object2.IsTrigger == False:
             Func(obj,object2)
     #- Yvalue
     if velocity_magnitute > 0:  
@@ -20,9 +23,17 @@ def Move_and_Collide_preset(obj):
         obj.Hitbox.centery += normalized_y * DeltaTime
     for object2 in obj.InteractLayers:
         Collided, Func = Check_Collisions(obj,object2,"Y")
-        if Collided == True and Func != None:
-            Func(obj,object2)
+        if Collided == True:
+            if object2.IsTrigger == False:
+                if Func != None:
+                    Func(obj,object2)
+            else:
+                obj.Health -= object2.Damage
+                direction = math.atan2(obj.Hitbox.centery - object2.Hitbox.centery,obj.Hitbox.centerx - object2.Hitbox.centerx)
+                #Obj_Logic_Handler.Apply_knockback(obj,object2.KnockBack,direction,knockbacktime=0.1)
 
+
+#--
 def CheckObbCollisions(obj1,obj2):
     Collided = False
     Dist = 50 #put it at anything positive
@@ -100,9 +111,10 @@ def Check_Collisions(obj,object2,MoveAxis):
         Func = Angled_Collision_React
     else:
         Collided = obj.Hitbox.colliderect(object2.Hitbox)
-        if MoveAxis == "X".lower():
+        print(f"{obj} and {object2} collided")
+        if MoveAxis == "X":
             Func = XCollision_React_0
-        elif MoveAxis == "Y".lower():
+        elif MoveAxis == "Y":
             Func = YCollision_React_0
     return Collided, Func
 
@@ -163,9 +175,62 @@ def YCollision_React_0(obj,object2):
             obj.Hitbox.top = object2.Hitbox.bottom
         obj.y = obj.Hitbox.center[1]
 
+#Knockback
+#
+#- TrackList
+class Kn_log:
+    objlist = []
+    powerlist = []
+    directionlist = []
+    knockback_time = []
+    current_time = []
+    Added = []
+    def remove_ob(ob_num):
+        Kn_log.objlist.pop(ob_num)
+        Kn_log.powerlist.pop(ob_num)
+        Kn_log.directionlist.pop(ob_num)
+        Kn_log.knockback_time.pop(ob_num)
+        Kn_log.current_time.pop(ob_num)
+        Kn_log.Added.pop(ob_num)
 
+#Bigger Logic Handler
+class Obj_Logic_Handler:
+
+    #Knockback in logic handler
+    #-_-
+    def Apply_knockback(obj,power,direction,knockbacktime):
+        Kn_log.objlist.append(obj)
+        Kn_log.powerlist.append(power)
+        Kn_log.directionlist.append(direction)
+        Kn_log.knockback_time.append(knockbacktime)
+        Kn_log.current_time.append(0)
+        Kn_log.Added.append(False)
+
+    def Knockback():
+        ob_num = 0
+        for obj in Kn_log.objlist:
+
+            if Kn_log.current_time[ob_num] < Kn_log.knockback_time[ob_num]:
+                Kn_log.current_time[ob_num] += DeltaTime
+                obj.xvelocity = Kn_log.powerlist[ob_num] * math.cos(Kn_log.directionlist[ob_num])
+                obj.yvelocity = Kn_log.powerlist[ob_num] * math.sin(Kn_log.directionlist[ob_num])
+                obj.AbleToMove = False
+            else:
+                obj.xvelocity = 0
+                obj.yvelocity = 0
+                obj.AbleToMove = True
+                Kn_log.remove_ob(ob_num)
+
+            ob_num += 1
+
+
+
+
+#Delta Time
+#
 def Get_DeltaTime():
     global DeltaTime
     DeltaTime = clock.tick(60) / 1000
     DeltaTime = max(0.001, min(0.1, DeltaTime))
     return DeltaTime
+
