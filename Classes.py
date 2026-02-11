@@ -8,6 +8,74 @@ PlayerLayer = []
 EnemyLayer = []
 WallLayer = []
 
+class Empty_Hitboxes:
+    def __init__(self,x,y,angle,width,height,LifeTime):
+        self.x = x
+        self.y = y
+        self.IsTrigger = True
+
+        #Set lifetime to 0 to have endless, or don't call the update function
+        self.LifeTime = LifeTime
+        #Can one of you change every PicAngle to angle instead? It was a mistake
+        # naming it Picangle but now all of them are that way. The sooner the 
+        # less work
+        self.PicAngle = angle
+
+        if self.PicAngle == 0:
+            self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
+            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
+        else:
+            self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
+            Rotate_Point = self.Hitbox.center
+            Radians_angle = math.radians(self.PicAngle)
+            cos_rad = math.cos(Radians_angle)
+            sin_rad = math.sin(Radians_angle)
+            #Top
+            Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
+            Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
+            #Bottom
+            Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
+            Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
+            #Points
+            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
+            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
+            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
+            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)        
+            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+    def Update_Hitbox(self):
+        if self.PicAngle == 0:
+            self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
+            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
+        else:
+            self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
+            Rotate_Point = self.Hitbox.center
+            Radians_angle = math.radians(self.PicAngle)
+            cos_rad = math.cos(Radians_angle)
+            sin_rad = math.sin(Radians_angle)
+            #Top
+            Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
+            Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
+            #Bottom
+            Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
+            Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
+            #Points
+            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
+            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
+            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
+            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
+                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)        
+            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+
+
+
+
 class Default_Object:
     def __init__(self,x,y,angle,RootPic,MaxHealth,WalkSpeed,Damage,KnockBack,KnockBackTime):
         self.MaxHealth = MaxHealth
@@ -15,8 +83,6 @@ class Default_Object:
         self.Damage = Damage
         self.KnockBack = KnockBack
         self.KnockBackTime = KnockBackTime
-
-        self.I_frames = 1
         #X
         self.AbleToMove = True
         self.WalkSpeed = WalkSpeed
@@ -31,7 +97,7 @@ class Default_Object:
         self.OriginPic = self.RootPic
         self.pic = self.OriginPic
 
-        self.I_frames = 0.3 #(Measured in seconds)
+        self.I_frames = 0.7 #(Measured in seconds)
         self.Sex_offenders_list = []
 
         # (list of miscellaneous functions to start every frame)

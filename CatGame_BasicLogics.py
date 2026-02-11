@@ -178,14 +178,15 @@ def YCollision_React_0(obj,object2):
 def Damage(obj,object2):
     #Checks if obj1 has already been damaged by object2
     for i_frame_tracker in object2.Sex_offenders_list:
-        print(f"Victim: {i_frame_tracker.victim}")
-        print(f"obj: {obj}")
+        #print(f"Victim: {i_frame_tracker.victim}")
+        #print(f"obj: {obj}")
         if i_frame_tracker.victim == obj:
+            print("stopped hit")
             return None
     obj.Health -= object2.Damage
     direction = math.atan2(obj.Hitbox.centery - object2.Hitbox.centery,obj.Hitbox.centerx - object2.Hitbox.centerx)
     Obj_Logic_Handler.Apply_knockback(obj,object2.KnockBack,direction,knockbacktime=object2.KnockBackTime,Should_stun=False)
-    print(f"Obj health ={obj.Health}")
+    #print(f"Obj health ={obj.Health}")
     obj_iframe_tracker(object2,obj)
     
 
