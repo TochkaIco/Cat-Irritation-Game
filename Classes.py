@@ -318,3 +318,26 @@ class Wall:
     
     def Update_class(self):
         pass
+
+class Grid:
+    def __init__(self, start_x, start_y, width, height, cell_size):
+        self.start_x = start_x
+        self.start_y = start_y
+        self.width = width
+        self.height = height
+        self.cell_size = cell_size
+        self.array = []
+
+        for x in range(0, self.width, self.cell_size):
+            for y in range(0, self.height, self.cell_size):
+                self.array.append((x,y))
+
+    def get_cell(self, x, y):
+        if x>=0 & y>=0 & x<self.array[-1][0] & y<self.array[-1][1]:
+            random_iter = 0
+            for unit in self.array:
+                if unit == (x,y):
+                    return random_iter
+                random_iter+=1
+        else:
+            raise "Incorrect cell x, y given..."
