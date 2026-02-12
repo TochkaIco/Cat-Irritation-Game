@@ -48,10 +48,10 @@ class Empty_Hitboxes:
             self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
     def Update_Hitbox(self):
         if self.PicAngle == 0:
-            self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
+            self.Hitbox = pygame.Rect(center=(self.Hitbox.centerx,self.Hitbox.centery),width=self.width,height=self.height)
             self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
         else:
-            self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
+            self.Hitbox = pygame.Rect(center=(self.Hitbox.centerx,self.Hitbox.centery),width=self.width,height=self.height)
             Rotate_Point = self.Hitbox.center
             Radians_angle = math.radians(self.PicAngle)
             cos_rad = math.cos(Radians_angle)
