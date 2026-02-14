@@ -3,18 +3,24 @@ import math
 import CatGame_BasicLogics as Log
 pygame.init()
 
+
 Default_Objects = []
 PlayerLayer = []
 EnemyLayer = []
 WallLayer = []
+WeaponLayer = []
 
 class Empty_Hitboxes:
-    def __init__(self,x,y,angle,width,height,LifeTime):
+    def __init__(self,x,y,angle,width,height,LifeTime,Layer):
         self.x = x
         self.y = y
         self.IsTrigger = True
-
+        self.Layer = Layer
+        #Put parent to none if it's a standalone hitbox
+        self.IsActive = True
+        
         #Set lifetime to 0 to have endless, or don't call the update function
+        self.CurrentTime = 0
         self.LifeTime = LifeTime
         #Can one of you change every PicAngle to angle instead? It was a mistake
         # naming it Picangle but now all of them are that way. The sooner the 
@@ -47,31 +53,11 @@ class Empty_Hitboxes:
                                    (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)        
             self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
     def Update_Hitbox(self):
-        if self.PicAngle == 0:
-            self.Hitbox = pygame.Rect(center=(self.Hitbox.centerx,self.Hitbox.centery),width=self.width,height=self.height)
-            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
-        else:
-            self.Hitbox = pygame.Rect(center=(self.Hitbox.centerx,self.Hitbox.centery),width=self.width,height=self.height)
-            Rotate_Point = self.Hitbox.center
-            Radians_angle = math.radians(self.PicAngle)
-            cos_rad = math.cos(Radians_angle)
-            sin_rad = math.sin(Radians_angle)
-            #Top
-            Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
-            Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
-            #Bottom
-            Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
-            Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
-            #Points
-            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
-            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
-            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
-            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)        
-            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+        Log.Update_hitbox_dimension_based(self)
+        Times_up = Log.Timer(self,self.LifeTime,self.CurrentTime)
+        if Times_up == True:
+            self.IsActive = True
+
 
 
 
@@ -83,6 +69,9 @@ class Default_Object:
         self.Damage = Damage
         self.KnockBack = KnockBack
         self.KnockBackTime = KnockBackTime
+        self.IsCluster = False
+        #Don't change, ask me first what it does
+        self.IsActive = True
         #X
         self.AbleToMove = True
         self.WalkSpeed = WalkSpeed
@@ -115,46 +104,14 @@ class Default_Object:
     def Update_class(self):
         self.Update_i_frame()
 
+    #idk what i was doing here, i guess it looks better
     def Update_i_frame(self):
         for Counter in self.Sex_offenders_list:
             Counter.Update_time()
     
     def Update_Hitbox(self):
         #This may seem stupid and redundant but we need it, just trust me
-        if self.PicAngle == 0:
-            self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
-            #
-            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
-            self.height = self.OriginPic.get_height()
-            self.width = self.OriginPic.get_width()
-        else:
-            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
-            #New Hitbox
-            #Points
-            Rotate_Point = self.Hitbox.center
-            #Maths
-            Radians_angle = math.radians(self.PicAngle)
-            cos_rad = math.cos(Radians_angle)
-            sin_rad = math.sin(Radians_angle)
-            #Top
-            #Roman, Fedor, If you're looking at this code and wondering why i put the variables in (), IT MAKES IT PRETTIER!! SHUT
-            Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
-            Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
-            #Bottom
-            Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
-            Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
-
-            #Calculating points
-            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
-            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
-            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
-            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
-            
-            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+        Log.Update_hitbox_image_based(self)
     
 
 
@@ -168,6 +125,8 @@ class Player(Default_Object):
         #Btw in this case damage would be if you give the player minecraft thorns enchantment
         super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300,Damage=0,KnockBack=100,KnockBackTime=0.2)
         #______ Adam Ohlsén
+        self.Damage_multi = 1
+
 
         self.Layer = "PlayerLayer"
         self.InteractLayers = WallLayer + EnemyLayer
@@ -218,7 +177,7 @@ class Slime(Default_Object):
     def __init__(self,x,y,angle,RootPic):
         super().__init__(x,y,angle,RootPic, MaxHealth=200,Damage=20,WalkSpeed=200,KnockBack=0.5,KnockBackTime=0.04)
         self.Layer = "SlimeLayer"
-        self.InteractLayers = WallLayer + PlayerLayer
+        self.InteractLayers = WallLayer + WeaponLayer
         EnemyLayer.append(self)
         self.IsTrigger = True
     
@@ -230,6 +189,8 @@ class Wall:
         #X and Y
         self.x = x
         self.y = y
+
+        self.IsActive = True
 
         #Misc
         self.RootPic = RootPic
@@ -279,40 +240,8 @@ class Wall:
         Default_Objects.append(self)
         WallLayer.append(self)  
     def Update_Hitbox(self):
-        if self.PicAngle != 0:
-            self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
-            #New Hitbox
-            #Points
-            Rotate_Point = self.Hitbox.center
-            #Maths
-            Radians_angle = math.radians(self.PicAngle)
-            cos_rad = math.cos(Radians_angle)
-            sin_rad = math.sin(Radians_angle)
-            #Top
-            #Roman, Fedor, If you're looking at this code and wondering why i put the variables in (), IT MAKES IT PRETTIER!! SHUT
-            Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
-            Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
-            #Bottom
-            Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
-            Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
-
-            #Calculating points
-            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
-            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
-            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
-            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
-            
-            self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
-            self.height = self.OriginPic.get_height()
-            self.width = self.OriginPic.get_width()           
-        else:
-            self.height = self.OriginPic.get_height()
-            self.width = self.OriginPic.get_width()
-            self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)  
+        Log.Update_hitbox_image_based(self)
+         
     def Update_Obj_specific(self):
         pass
     
@@ -341,3 +270,37 @@ class Grid:
                 random_iter+=1
         else:
             raise "Incorrect cell x, y given..."
+
+
+
+
+#--__--
+class Weapons:
+    def __init__(self,x,y,angle,damage,Hitbox_cluster,KnockBack,KnockBackTime):
+        self.x = x
+        self.y = y
+        self.angle = angle
+        self.damage = damage
+        self.KnockBack = KnockBack
+        self.KnockBackTime = KnockBackTime
+
+        self.IsActive = True
+        self.Hitbox_active = False
+        self.IsCluster = True
+
+        self.Hitbox_cluster = Hitbox_cluster
+        self.Layer = "WeaponLayer"
+
+    def Summon_weapon(self):
+        WeaponLayer.append(self)
+
+
+class Swipe(Weapons):
+    def __init__(self, x, y, angle,player):
+        #Prefixes
+        MiddleHitbox = Empty_Hitboxes(x,y,angle,width=100,height=40,LifeTime=1,Layer=WeaponLayer)
+        LeftHitbox = Empty_Hitboxes(x - MiddleHitbox.Hitbox.width,y,angle,width=40,height=20,LifeTime=1.1,Layer=WeaponLayer)
+        RightHitbox = Empty_Hitboxes(x + MiddleHitbox.Hitbox.width,y,angle,width=40,height=20,LifeTime=0.9,Layer=WeaponLayer)
+        
+        Hitbox_cluster = [MiddleHitbox,LeftHitbox,RightHitbox]
+        super().__init__(x, y, angle, damage=20 * player.Damage_multi, Hitbox_cluster=Hitbox_cluster)

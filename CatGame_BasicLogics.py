@@ -1,6 +1,8 @@
 import math
 from pygame import time
-from pygame import rect
+from pygame import rect # don't remove the rect import guys, it might seem like i am retarded
+# but rect and Rect are different functions
+from pygame import Rect
 clock = time.Clock()
 DeltaTime = 0.1
 # Collision logic
@@ -13,22 +15,96 @@ def Move_and_Collide_preset(obj):
     if velocity_magnitute > 0:
         normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
         obj.Hitbox.x += normalized_x * DeltaTime   
+    #_-_
     for object2 in obj.InteractLayers:
-        Collided, Func = Check_Collisions(obj,object2,"X")
-        if Collided == True and Func != None and object2.IsTrigger == False:
-            Func(obj,object2)
+        if object2.IsActive == True:
+            Collided, Func = Check_Collisions(obj,object2,"X")
+            if Collided == True and Func != None:
+                Func(obj,object2)
     #- Yvalue
     if velocity_magnitute > 0:  
         normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
         obj.Hitbox.centery += normalized_y * DeltaTime
+    #_-_
     for object2 in obj.InteractLayers:
-        Collided, Func = Check_Collisions(obj,object2,"Y")
-        if Collided == True:
-            if object2.IsTrigger == False:
+        if object2.IsActive == True:
+            Collided, Func = Check_Collisions(obj,object2,"Y")
+            #maybe this will work, if it returns no function then must be a trigger right?
+            if Collided == True:
                 if Func != None:
                     Func(obj,object2)
+                if object2.IsTrigger:
+                    Damage(obj,object2)
+
+#Quick note to the rest of you, if you look at the code then yes, we could put
+# the damage inside of the Func() of Check_Collisions, but what if we
+# don't want every obj to damage? maybe one attack freezes instead?
+#
+# We could give every object a Func, that would fix it and make the code better
+# I will do it later, or one of you can do it.
+
+def Enemy_Move_preset(obj):
+    velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
+    if velocity_magnitute > 0:
+        normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
+        obj.Hitbox.x += normalized_x * DeltaTime  
+    #-
+    for object2 in obj.InteractLayers:
+        #._.
+        if object2.IsCluster == True:
+            for hitbox in object2.Hitbox_cluster:
+                if hitbox.IsActive == True:
+                    Collided,Func = Check_Collisions(obj,hitbox,"X")
+                    Func(obj,object2)
+        else:
+            if hitbox.IsActive == True:
+                Collided,Func = Check_Collisions(obj,object2,"X")
+                if Collided == True:
+                    if Func != None:
+                        Func()
+    # __ ._. __     Stfu, i will use faces as seperators     _________________
+    if velocity_magnitute > 0:  
+        normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
+        obj.Hitbox.centery += normalized_y * DeltaTime
+    #.._..
+    for object2 in obj.InteractLayers:
+        if object2.IsActive == True:
+            #._.
+            if object2.IsCluster == True:
+                if object2.IsTrigger:
+                    for hitbox in object2.Hitbox_cluster:
+                        Collided,Func = Check_Collisions(obj,hitbox,None)
+                        if Collided == True:
+                            Damage(obj,object2)
+                            break
+                #._.
+                else:
+                    for hitbox in object2.Hitbox_cluster:
+                        Collided,Func = Check_Collisions(obj,hitbox,"Y")
+                        Func(obj,object2)
             else:
-                Damage(obj,object2)
+                Collided,Func = Check_Collisions(obj,object2,"Y")
+                if Collided == True:
+                    if Func != None:
+                        Func()
+                    if object2.IsTrigger:
+                        Damage(obj,object2)
+
+        
+        
+def Timer(self,LifeTime,CurrentTime):
+    if self.LifeTime != 0:
+        if CurrentTime < LifeTime:
+            self.CurrentTime += DeltaTime
+            return False
+        if CurrentTime > LifeTime:
+            return True
+    else:
+        return False
+
+
+
+
 
 
 #--
@@ -104,16 +180,19 @@ def CheckObbCollisions(obj1,obj2):
 def Check_Collisions(obj,object2,MoveAxis):
     Collided = False
     Func = None
+
     if obj.PicAngle != 0 or object2.PicAngle != 0:
         Collided = CheckObbCollisions(obj,object2)
-        Func = Angled_Collision_React
+        if object2.IsTrigger == False:
+            Func = Angled_Collision_React
     else:
         Collided = obj.Hitbox.colliderect(object2.Hitbox)
         #print(f"{obj} and {object2} collided")
-        if MoveAxis == "X":
-            Func = XCollision_React_0
-        elif MoveAxis == "Y":
-            Func = YCollision_React_0
+        if object2.IsTrigger == False:
+            if MoveAxis == "X":
+                Func = XCollision_React_0
+            elif MoveAxis == "Y":
+                Func = YCollision_React_0
     return Collided, Func
 
 
@@ -189,7 +268,69 @@ def Damage(obj,object2):
     #print(f"Obj health ={obj.Health}")
     obj_iframe_tracker(object2,obj)
     
+def Update_hitbox_image_based(self):
+    if self.PicAngle == 0:
+        self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
+        #
+        self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
+        self.height = self.OriginPic.get_height()
+        self.width = self.OriginPic.get_width()
+    else:
+        self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
+        #New Hitbox
+        #Points
+        Rotate_Point = self.Hitbox.center
+        #Maths
+        Radians_angle = math.radians(self.PicAngle)
+        cos_rad = math.cos(Radians_angle)
+        sin_rad = math.sin(Radians_angle)
+        #Top
+        #Roman, Fedor, If you're looking at this code and wondering why i put the variables in (), IT MAKES IT PRETTIER!! SHUT
+        Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
+        Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
+        #Bottom
+        Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
+        Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
 
+        #Calculating points
+        self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
+        self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
+        self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
+        self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
+        
+        self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+
+
+def Update_hitbox_dimension_based(self):
+    if self.PicAngle == 0:
+        self.Hitbox = Rect(center=(self.Hitbox.centerx,self.Hitbox.centery),width=self.width,height=self.height)
+        self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
+    else:
+        self.Hitbox = Rect(center=(self.Hitbox.centerx,self.Hitbox.centery),width=self.width,height=self.height)
+        Rotate_Point = self.Hitbox.center
+        Radians_angle = math.radians(self.PicAngle)
+        cos_rad = math.cos(Radians_angle)
+        sin_rad = math.sin(Radians_angle)
+        #Top
+        Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
+        Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
+        #Bottom
+        Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
+        Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
+        #Points
+        self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
+        self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
+        self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
+        self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
+                                (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)        
+        self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
 
 #- TrackList
 
