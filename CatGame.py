@@ -189,7 +189,7 @@ while Running == True:
             
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
-    DeltaTime = Log.Get_DeltaTime()
+    DeltaTime = Log.Set_DeltaTime()
     #Meow is back
     #print("meow")
     pygame.display.flip()

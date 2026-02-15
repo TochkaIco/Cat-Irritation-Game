@@ -9,7 +9,7 @@ DeltaTime = 0.1
 #
 #--
 #Regular player preset for collision and other logic, change as necessary
-def Move_and_Collide_preset(obj):
+def Move_and_Collide_preset(obj, On_Collision):
     #- Xvalue
     velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
     if velocity_magnitute > 0:
@@ -18,9 +18,16 @@ def Move_and_Collide_preset(obj):
     #_-_
     for object2 in obj.InteractLayers:
         if object2.IsActive == True:
-            Collided, Func = Check_Collisions(obj,object2,"X")
-            if Collided == True and Func != None:
-                Func(obj,object2)
+            if object2.IsCluster == True:
+                for hitbox in object2.Hitbox_cluster:
+                    Collided, Func = Check_Collisions(obj,hitbox,"X")
+                    if Collided == True:
+                        Func(obj,object2)
+            else:
+                Collided, Func = Check_Collisions(obj,object2,"X")
+                if Collided == True:
+                    Func(obj,object2)
+
     #- Yvalue
     if velocity_magnitute > 0:  
         normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
@@ -28,13 +35,22 @@ def Move_and_Collide_preset(obj):
     #_-_
     for object2 in obj.InteractLayers:
         if object2.IsActive == True:
-            Collided, Func = Check_Collisions(obj,object2,"Y")
-            #maybe this will work, if it returns no function then must be a trigger right?
-            if Collided == True:
-                if Func != None:
+            if object2.IsCluster == True:
+                for hitbox in object2.Hitbox_cluster:
+                    Collided, Func = Check_Collisions(obj,object2,"Y")
+                    if Collided == True:
+                        Func(obj,object2)
+                        if On_Collision != None:
+                            On_Collision(obj,object2)
+                        break
+            else:
+                Collided, Func = Check_Collisions(obj,object2,"Y")
+                if Collided == True:
                     Func(obj,object2)
-                if object2.IsTrigger:
-                    Damage(obj,object2)
+                    if On_Collision != None:
+                        On_Collision(obj,object2)
+
+
 
 #Quick note to the rest of you, if you look at the code then yes, we could put
 # the damage inside of the Func() of Check_Collisions, but what if we
@@ -42,55 +58,6 @@ def Move_and_Collide_preset(obj):
 #
 # We could give every object a Func, that would fix it and make the code better
 # I will do it later, or one of you can do it.
-
-def Enemy_Move_preset(obj):
-    velocity_magnitute = math.sqrt(obj.xvelocity**2 + obj.yvelocity**2)
-    if velocity_magnitute > 0:
-        normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
-        obj.Hitbox.x += normalized_x * DeltaTime  
-    #-
-    for object2 in obj.InteractLayers:
-        #._.
-        if object2.IsCluster == True:
-            for hitbox in object2.Hitbox_cluster:
-                if hitbox.IsActive == True:
-                    Collided,Func = Check_Collisions(obj,hitbox,"X")
-                    Func(obj,object2)
-        else:
-            if hitbox.IsActive == True:
-                Collided,Func = Check_Collisions(obj,object2,"X")
-                if Collided == True:
-                    if Func != None:
-                        Func()
-    # __ ._. __     Stfu, i will use faces as seperators     _________________
-    if velocity_magnitute > 0:  
-        normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
-        obj.Hitbox.centery += normalized_y * DeltaTime
-    #.._..
-    for object2 in obj.InteractLayers:
-        if object2.IsActive == True:
-            #._.
-            if object2.IsCluster == True:
-                if object2.IsTrigger:
-                    for hitbox in object2.Hitbox_cluster:
-                        Collided,Func = Check_Collisions(obj,hitbox,None)
-                        if Collided == True:
-                            Damage(obj,object2)
-                            break
-                #._.
-                else:
-                    for hitbox in object2.Hitbox_cluster:
-                        Collided,Func = Check_Collisions(obj,hitbox,"Y")
-                        Func(obj,object2)
-            else:
-                Collided,Func = Check_Collisions(obj,object2,"Y")
-                if Collided == True:
-                    if Func != None:
-                        Func()
-                    if object2.IsTrigger:
-                        Damage(obj,object2)
-
-        
         
 def Timer(self,LifeTime,CurrentTime):
     if self.LifeTime != 0:
@@ -103,7 +70,8 @@ def Timer(self,LifeTime,CurrentTime):
         return False
 
 
-
+def Nothing(*_):
+    pass
 
 
 
@@ -179,7 +147,7 @@ def CheckObbCollisions(obj1,obj2):
 
 def Check_Collisions(obj,object2,MoveAxis):
     Collided = False
-    Func = None
+    Func = Nothing
 
     if obj.PicAngle != 0 or object2.PicAngle != 0:
         Collided = CheckObbCollisions(obj,object2)
@@ -199,19 +167,22 @@ def Check_Collisions(obj,object2,MoveAxis):
 def Angled_Collision_React(obj,object2):
     obj.Update_Hitbox()
     object2.Update_Hitbox()
+    #-_
     if obj.Hitbox.centery < object2.Hitbox.centery: YDirection = -1 
     else: YDirection = 1
     if obj.Hitbox.centerx > object2.Hitbox.centerx: XDirection = 1
     else: XDirection = -1
+    if object2.PicAngle < 0:
+        YDirection *= -1
+        XDirection *= -1
     #Getting the points to compare pos to
-    if object2.Points[0][1] > object2.Points[1][1]: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][0] = object2.Points[0][1], object2.Points[3][1], object2.Points[2][0], 1
+    if object2.Points[0][1] > object2.Points[1][1]: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][0], object2.Points[0][1], object2.Points[3][1], object2.Points[2][0], 1
     else: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][1], object2.Points[2][1], object2.Points[0][0], object2.Points[3][0], 0     
 
     #tan v
     RadAngle = math.radians(object2.PicAngle)
-    Xadd = object2.width / 2 + (object2.width / 2 * math.tan(RadAngle)) * math.tan(RadAngle/2)
-    Yadd = object2.height / 2 + (object2.height / 2 * math.tan(RadAngle)) * math.tan(RadAngle/2)
-    print(f"Xadd ={Xadd}")
+    Xadd = (object2.width / 2 + (object2.width / 2 * math.tan(RadAngle)) * math.tan(RadAngle/2))
+    Yadd = (object2.height / 2 + (object2.height / 2 * math.tan(RadAngle)) * math.tan(RadAngle/2))
     Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.tan(RadAngle) * YDirection
     Ex_height = (obj.Hitbox.centery - object2.Hitbox.centery) * math.tan(RadAngle) * -XDirection
     #top
@@ -235,6 +206,16 @@ def Angled_Collision_React(obj,object2):
         obj.Hitbox.left = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))-1) * XDirection
     obj.Update_Hitbox()
     object2.Update_Hitbox()
+
+def Get_Points(obj,object2):
+    if object2.Points[0][1] > object2.Points[1][1]: 
+        TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][0], object2.Points[0][1], object2.Points[3][1], object2.Points[2][0], 1
+    else: 
+        TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][1], object2.Points[2][1], object2.Points[0][0], object2.Points[3][0], 0
+
+    
+    pass
+
 
 def XCollision_React_0(obj,object2):
     if obj.Hitbox.colliderect(object2.Hitbox):
@@ -408,9 +389,13 @@ class Obj_Logic_Handler:
 
 #Delta Time
 #
-def Get_DeltaTime():
+def Set_DeltaTime():
     global DeltaTime
     DeltaTime = clock.tick(60) / 1000
     DeltaTime = max(0.001, min(0.1, DeltaTime))
+    return DeltaTime
+
+def Get_DeltaTime():
+    global DeltaTime
     return DeltaTime
 

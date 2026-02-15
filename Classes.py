@@ -123,7 +123,7 @@ class Default_Object:
 class Player(Default_Object):
     def __init__(self,x,y,angle,RootPic):
         #Btw in this case damage would be if you give the player minecraft thorns enchantment
-        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300,Damage=0,KnockBack=100,KnockBackTime=0.2)
+        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300,Damage=0,KnockBack=0,KnockBackTime=0)
         #______ Adam Ohlsén
         self.Damage_multi = 1
 
@@ -138,10 +138,14 @@ class Player(Default_Object):
         self.IsTrigger = True
         PlayerLayer.append(self)
     def Update_Obj_specific(self):
-
         self.InteractLayers = WallLayer + EnemyLayer
         print(self.InteractLayers)
-        Log.Move_and_Collide_preset(self)
+        
+        def On_collision(obj,object2):
+            if object2.IsTrigger:
+                Log.Damage(obj,object2)
+
+        Log.Move_and_Collide_preset(self,On_collision)
 
 
     def Control_Player(self,PyEvents):
@@ -184,6 +188,12 @@ class Slime(Default_Object):
     def Update_Obj_specific(self):
         self.InteractLayers = WallLayer + PlayerLayer
 
+        def On_Collision(obj,object2):
+            if object2.IsTrigger:
+                Log.Damage(obj,object2)
+
+        Log.Move_and_Collide_preset(self,On_Collision)
+
 class Wall:
     def __init__(self,x,y,angle,RootPic):
         #X and Y
@@ -191,7 +201,7 @@ class Wall:
         self.y = y
 
         self.IsActive = True
-
+        self.IsCluster = False
         #Misc
         self.RootPic = RootPic
         self.RootPic = pygame.transform.scale_by(self.RootPic,2)
@@ -303,4 +313,4 @@ class Swipe(Weapons):
         RightHitbox = Empty_Hitboxes(x + MiddleHitbox.Hitbox.width,y,angle,width=40,height=20,LifeTime=0.9,Layer=WeaponLayer)
         
         Hitbox_cluster = [MiddleHitbox,LeftHitbox,RightHitbox]
-        super().__init__(x, y, angle, damage=20 * player.Damage_multi, Hitbox_cluster=Hitbox_cluster)
+        super().__init__(x, y, angle, damage=20 * player.Damage_multi, Hitbox_cluster=Hitbox_cluster,KnockBack=100,KnockBackTime=0.2)
