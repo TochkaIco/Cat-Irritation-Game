@@ -56,7 +56,7 @@ class Empty_Hitboxes:
         Log.Update_hitbox_dimension_based(self)
         Times_up = Log.Timer(self,self.LifeTime,self.CurrentTime)
         if Times_up == True:
-            self.IsActive = True
+            self.IsActive = False
 
 
 
@@ -303,6 +303,10 @@ class Weapons:
 
     def Summon_weapon(self):
         WeaponLayer.append(self)
+        self.IsActive = True
+        for hitbox in self.hitbox_cluster:
+            hitbox.IsActive = True
+            hitbox.CurrentTime = 0
 
 
 class Swipe(Weapons):

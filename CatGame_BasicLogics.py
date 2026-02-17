@@ -332,14 +332,18 @@ class obj_iframe_tracker:
             self.sex_offender.Sex_offenders_list.remove(self)
             del self
         
-
+class Inventory:
+    def __init__(self,parent,space):
+        self.parent = parent
+        self.space = space
+        
 
 class Kn_log:
     objlist = []
     powerlist = []
     directionlist = []
     knockback_time = []
-    current_time = []
+    current_time = [] 
     Added = []
     Should_Stun = []
     def remove_ob(ob_num):

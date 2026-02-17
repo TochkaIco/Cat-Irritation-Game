@@ -6,7 +6,7 @@ import numpy as np
 import CatGame_BasicLogics as Log
 
 import Classes
-#Hey, sasha, Maxi, Roman or Indy. Why tf is the terminal telling me no module found? Literally
+#Hey, Sasha, Maxi, Roman or Indy. Why tf is the terminal telling me no module found? Literally
 # there is a module though. Im leaving this text in the background, hope one of you notices
 #map generation import
 import MapGenerator
