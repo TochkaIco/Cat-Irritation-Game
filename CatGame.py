@@ -4,6 +4,7 @@ import pygame
 import math
 import numpy as np
 import CatGame_BasicLogics as Log
+import logging
 
 import Classes
 #Hey, Sasha, Maxi, Roman or Indy. Why tf is the terminal telling me no module found? Literally
@@ -195,13 +196,9 @@ while Running == True:
             
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
-<<<<<<< HEAD
     DeltaTime = Log.Set_DeltaTime()
     #Meow is back
-=======
-    DeltaTime = Log.Get_DeltaTime()
     #Meow is not back
->>>>>>> ace7a9db2862ee9742d70c8b87064f2d297c6088
     #print("meow")
     pygame.display.flip()
 
