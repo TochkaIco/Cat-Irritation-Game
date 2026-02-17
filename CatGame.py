@@ -167,8 +167,13 @@ while Running == True:
                 adjusted_hitbox = obj.Hitbox.copy()
                 adjusted_hitbox.x -= CameraX
                 adjusted_hitbox.y -= CameraY
-                pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
-                pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 2)
+                #if trigger - make it red else blue, to see where the player can interact with stuff
+                if obj.IsTrigger:
+                    pygame.draw.rect(screen, (255, 0, 0), adjusted_hitbox)
+                    pygame.draw.circle(screen, (0, 0, 255), (screen_x, screen_y), 2)
+                else:
+                    pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
+                    pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 2)
                 if obj.PicAngle != 0:
                     pygame.draw.circle(screen, (255,0,0), (obj.Top_left_point[0] - CameraX, obj.Top_left_point[1] - CameraY),2)
                     pygame.draw.circle(screen, (255,0,0), (obj.Top_right_point[0] - CameraX, obj.Top_right_point[1] - CameraY),2)
@@ -189,8 +194,13 @@ while Running == True:
             
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain
+<<<<<<< HEAD
     DeltaTime = Log.Set_DeltaTime()
     #Meow is back
+=======
+    DeltaTime = Log.Get_DeltaTime()
+    #Meow is not back
+>>>>>>> ace7a9db2862ee9742d70c8b87064f2d297c6088
     #print("meow")
     pygame.display.flip()
 
