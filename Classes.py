@@ -1,6 +1,8 @@
 import pygame
 import math
 import CatGame_BasicLogics as Log
+import logging
+logger = logging.getLogger(__name__)
 pygame.init()
 
 
@@ -50,14 +52,14 @@ class Empty_Hitboxes:
             self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
                                    (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
             self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)        
+                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
             self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
+            logger.info(f"Empty hitboxes initialized")
     def Update_Hitbox(self):
         Log.Update_hitbox_dimension_based(self)
         Times_up = Log.Timer(self,self.LifeTime,self.CurrentTime)
         if Times_up == True:
             self.IsActive = False
-
 
 
 
@@ -101,6 +103,7 @@ class Default_Object:
         
         #Put all __init__ logic before the append
         Default_Objects.append(self)
+        logger.info("Default object initialized")
     def Update_class(self):
         self.Update_i_frame()
 
@@ -137,6 +140,7 @@ class Player(Default_Object):
         #Put all __init__ logic before the append
         self.IsTrigger = True
         PlayerLayer.append(self)
+        logger.info(f"Player initialized")
     def Update_Obj_specific(self):
         self.InteractLayers = WallLayer + EnemyLayer
         print(self.InteractLayers)
@@ -184,6 +188,7 @@ class Slime(Default_Object):
         self.InteractLayers = WallLayer + WeaponLayer
         EnemyLayer.append(self)
         self.IsTrigger = True
+        logger.info("Slime initialized")
     
     def Update_Obj_specific(self):
         self.InteractLayers = WallLayer + PlayerLayer
@@ -248,7 +253,8 @@ class Wall:
 
         self.IsTrigger = False
         Default_Objects.append(self)
-        WallLayer.append(self)  
+        WallLayer.append(self)
+        logger.info("Wall initialized")
     def Update_Hitbox(self):
         Log.Update_hitbox_image_based(self)
          
@@ -270,6 +276,7 @@ class Grid:
         for x in range(0, self.width, self.cell_size):
             for y in range(0, self.height, self.cell_size):
                 self.array.append((x,y))
+        logger.info("Grid initialized")
 
     def get_cell(self, x, y):
         if x>=0 & y>=0 & x<self.array[-1][0] & y<self.array[-1][1]:
@@ -300,6 +307,7 @@ class Weapons:
 
         self.Hitbox_cluster = Hitbox_cluster
         self.Layer = "WeaponLayer"
+        logger.info("Weapon initialized")
 
     def Summon_weapon(self):
         WeaponLayer.append(self)
@@ -318,3 +326,4 @@ class Swipe(Weapons):
         
         Hitbox_cluster = [MiddleHitbox,LeftHitbox,RightHitbox]
         super().__init__(x, y, angle, damage=20 * player.Damage_multi, Hitbox_cluster=Hitbox_cluster,KnockBack=100,KnockBackTime=0.2)
+        logger.info("Weapon swipe initialized")

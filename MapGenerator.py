@@ -3,6 +3,8 @@ import numpy as np
 import random
 from pathlib import Path
 from scipy.interpolate import CubicSpline
+import logging
+logger = logging.getLogger(__name__)
 
 #So I have remade almost the entire island generation code to use Pygame Surfaces directly
 #This should be way faster and easier to manage. Ask me if you have questions. Roman
@@ -17,12 +19,16 @@ num_flowers = 1000
 water_color = [25, 76, 204]  #Water color (blue)
 ground_color = [25, 153, 51]  #Ground color (green)
 
+logger.info("MapGenerator start...")
+
 def load_flowers(folder_path):
+    logger.info(f"Loading images from {folder_path}")
     path = Path(folder_path)
     #Search for all png files
     flower_files = list(path.glob("*.png"))
     
     if not flower_files:
+        logger.info(f"No flower images found in {folder_path}")
         print(f"You fucked up: No flowers found in {folder_path}")
         return []
 
@@ -36,6 +42,7 @@ def load_flowers(folder_path):
     return images
 
 def Generate_Island_BG():
+    logger.info(f"Generating Island BG...")
     #Spaming to the system, to prevent "No response"
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -91,5 +98,5 @@ def Generate_Island_BG():
                 #Baking them into one surface
                 island_surface.blit(flower, rect)
                 placed += 1
-            
+    logger.info("Returning island surface")
     return island_surface

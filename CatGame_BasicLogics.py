@@ -3,6 +3,8 @@ from pygame import time
 from pygame import rect # don't remove the rect import guys, it might seem like i am retarded
 # but rect and Rect are different functions
 from pygame import Rect
+import logging
+logger = logging.getLogger(__name__)
 clock = time.Clock()
 DeltaTime = 0.1
 # Collision logic

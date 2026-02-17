@@ -5,6 +5,7 @@ import math
 import numpy as np
 import CatGame_BasicLogics as Log
 import logging
+logger = logging.getLogger(__name__)
 
 import Classes
 #Hey, Sasha, Maxi, Roman or Indy. Why tf is the terminal telling me no module found? Literally
@@ -25,10 +26,14 @@ Size_Difference = screen.get_height() / screen.get_width()
 # For some reason a 1920 x 1080 screen will give you 1280, 800. Just remember that
 Default_screen = 1280,800
 
+logging.basicConfig(filename='runner.log', level=logging.INFO)
+logger.info('Pygame init')
 pygame.display.set_caption("Cat-Irritation-Game")
 clock = pygame.time.Clock()
 DeltaTime = 0.1
 debug_draw = True
+
+logger.info(f"Detected screen size: {screen.get_width()}, {screen.get_height()}")
 
 #bg_loading
 screen.fill((0, 0, 0))
@@ -84,6 +89,7 @@ def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
                 return x,y
         ray_length += 5
         debug_iterations += 1
+    logger.info(debug_iterations)
     print (debug_iterations)
     return None,None
 
@@ -130,6 +136,7 @@ while Running == True:
     #Scenes
     if Scene == "MainScene":
         if LoadedScene == False:
+            logger.info('Loading scene')
             print ("loading scene")
             LoadedScene = True
         #-
@@ -138,6 +145,7 @@ while Running == True:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_0:
                     debug_draw = not debug_draw
+                    logger.info('Debug draw', debug_draw)
                     print("Debug Draw", debug_draw)
         
         DefaultPlayer.Control_Player(PyEvents)
@@ -183,6 +191,7 @@ while Running == True:
                     pygame.draw.circle(screen, (255,0,0), (obj.Bottom_right_point[0] - CameraX, obj.Bottom_right_point[1] - CameraY),2)
 
         #The player healthbar, maybeeee i should've made a ui class but it's like 24:00
+        logger.info(f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Default_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
         print (f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Default_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
 
         #Wait wtf? why is that genuinely just not working?
@@ -191,6 +200,7 @@ while Running == True:
             cropped_health_inner.blit(HealthBar_Inside,(0,0))
             screen.blit(cropped_health_inner,(20,20))
         screen.blit(HealthBar, (20,20))
+        logger.info(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
         print(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
             
             
