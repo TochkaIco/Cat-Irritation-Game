@@ -65,7 +65,7 @@ class Empty_Hitboxes:
 
 
 class Default_Object:
-    def __init__(self,x,y,angle,RootPic,MaxHealth,WalkSpeed,Damage,KnockBack,KnockBackTime):
+    def __init__(self,x,y,angle,RootPic,MaxHealth,WalkSpeed,Damage,KnockBack,KnockBackTime,Layer,IsTrigger):
         self.MaxHealth = MaxHealth
         self.Health = self.MaxHealth
         self.Damage = Damage
@@ -87,6 +87,9 @@ class Default_Object:
         self.RootPic = pygame.transform.scale_by(self.RootPic,2)
         self.OriginPic = self.RootPic
         self.pic = self.OriginPic
+        #Layers
+        self.Layer = Layer
+        self.IsTrigger = IsTrigger
 
         self.I_frames = 0.7 #(Measured in seconds)
         self.Sex_offenders_list = []
@@ -126,19 +129,15 @@ class Default_Object:
 class Player(Default_Object):
     def __init__(self,x,y,angle,RootPic):
         #Btw in this case damage would be if you give the player minecraft thorns enchantment
-        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300,Damage=0,KnockBack=0,KnockBackTime=0)
+        super().__init__(x,y,angle,RootPic,MaxHealth=100,WalkSpeed=300,Damage=0,KnockBack=0,KnockBackTime=0,Layer="PlayerLayer",IsTrigger=True)
         #______ Adam Ohlsén
         self.Damage_multi = 1
-
-
-        self.Layer = "PlayerLayer"
         self.InteractLayers = WallLayer + EnemyLayer
         self.ApplySpeed = False
         self.temp_xvel = 0
         self.temp_yvel = 0 
         
         #Put all __init__ logic before the append
-        self.IsTrigger = True
         PlayerLayer.append(self)
         logger.info(f"Player initialized")
     def Update_Obj_specific(self):
@@ -183,11 +182,9 @@ class Player(Default_Object):
 
 class Slime(Default_Object):
     def __init__(self,x,y,angle,RootPic):
-        super().__init__(x,y,angle,RootPic, MaxHealth=200,Damage=20,WalkSpeed=200,KnockBack=0.5,KnockBackTime=0.04)
-        self.Layer = "SlimeLayer"
+        super().__init__(x,y,angle,RootPic, MaxHealth=200,Damage=20,WalkSpeed=200,KnockBack=0.5,KnockBackTime=0.04,Layer="SlimeLayer",IsTrigger=True)
         self.InteractLayers = WallLayer + WeaponLayer
         EnemyLayer.append(self)
-        self.IsTrigger = True
         logger.info("Slime initialized")
     
     def Update_Obj_specific(self):
