@@ -1,9 +1,9 @@
-
 #imports
 import pygame
 import math
 import numpy as np
 import CatGame_BasicLogics as Log
+import PrefabManager
 import logging
 logger = logging.getLogger(__name__)
 
@@ -119,6 +119,13 @@ tempthing = 1024
 TestWall = Classes.Wall(SpawnPoint[0], SpawnPoint[1]-300, 20,Roman)
 TestSlime = Classes.Slime(SpawnPoint[0] - 300, SpawnPoint[1] - 200,0,Angy_Slime)
 
+#Prefs
+Base_Wall_Texture = pygame.Surface((1, 1))
+Base_Wall_Texture.fill((255, 255, 255)) 
+#Checking sizes, that everyting fits and spawn
+PrefabManager.Load_And_Spawn_Prefabs_Optimized(Base_Wall_Texture, IslandBackground)
+debug_font = pygame.font.Font(None, 36)
+
 while Running == True:
     tempthing -= 1
     screen.fill((25, 76, 204))
@@ -205,6 +212,14 @@ while Running == True:
         #or ("text %s %s", var, var2)
         logger.info(f"Healthbar: {HealthBar.get_width()} {HealthBar.get_height()}")
         print(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
+            
+        #FPS count. Why? Idfk, i want
+        #Dont's show on the menu
+        if debug_draw and LoadedScene:
+            current_fps = int(Log.clock.get_fps())
+            #Yellow only cause we never used it
+            fps_surface = debug_font.render(f"FPS: {current_fps}", True, (255, 255, 0))
+            screen.blit(fps_surface, (screen.get_width() - 120, 20))
             
             
     #______ Adam Ohlsén

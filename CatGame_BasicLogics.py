@@ -7,6 +7,11 @@ import logging
 logger = logging.getLogger(__name__)
 clock = time.Clock()
 DeltaTime = 0.1
+FPS = 60
+FPS_Unlimited = 1000
+#Use only for check
+Is_FPS_Unlimited = False
+
 # Collision logic
 #
 #--
@@ -397,7 +402,10 @@ class Obj_Logic_Handler:
 #
 def Set_DeltaTime():
     global DeltaTime
-    DeltaTime = clock.tick(60) / 1000
+    if Is_FPS_Unlimited:
+        DeltaTime = clock.tick(FPS_Unlimited) / 1000
+    else:
+        DeltaTime = clock.tick(FPS) / 1000
     DeltaTime = max(0.001, min(0.1, DeltaTime))
     return DeltaTime
 
