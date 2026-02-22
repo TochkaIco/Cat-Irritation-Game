@@ -145,7 +145,7 @@ while Running == True:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_0:
                     debug_draw = not debug_draw
-                    logger.info('Debug draw', debug_draw)
+                    logger.info(f"Debug draw: {debug_draw}")
                     print("Debug Draw", debug_draw)
         
         DefaultPlayer.Control_Player(PyEvents)
@@ -200,7 +200,10 @@ while Running == True:
             cropped_health_inner.blit(HealthBar_Inside,(0,0))
             screen.blit(cropped_health_inner,(20,20))
         screen.blit(HealthBar, (20,20))
-        logger.info(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
+        #you can't write (f"text", var, var)
+        #do or (f"text {var} {var2}")
+        #or ("text %s %s", var, var2)
+        logger.info(f"Healthbar: {HealthBar.get_width()} {HealthBar.get_height()}")
         print(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
             
             
