@@ -19,6 +19,23 @@ num_flowers = 1000
 water_color = [25, 76, 204]  #Water color (blue)
 ground_color = [25, 153, 51]  #Ground color (green)
 
+def Get_Island_Land_Points(island_surface, num_points):
+    logger.info(f"Finding {num_points} valid land points...")
+    land_points = []
+    placed = 0
+    ground_tuple = tuple(ground_color)
+    
+    while placed < num_points:
+        x = random.randint(0, IslandSize - 1)
+        y = random.randint(0, IslandSize - 1)
+        
+        # Check if the pixel color matches the ground color
+        if island_surface.get_at((x, y))[:3] == ground_tuple:
+            land_points.append((x, y))
+            placed += 1
+            
+    return land_points
+
 logger.info("MapGenerator start...")
 
 def load_flowers(folder_path):

@@ -40,6 +40,7 @@ logger.info(f"Detected screen size: {screen.get_width()}, {screen.get_height()}"
 #bg_loading
 screen.fill((0, 0, 0))
 font = pygame.font.Font(None, 74)
+debug_font = pygame.font.Font(None, 36)
 loading_text = font.render("Loading...", True, (255, 255, 255))
 text_rect = loading_text.get_rect(center=(screen.get_width()/2,screen.get_height()/2))
 screen.blit(loading_text, text_rect)
@@ -115,12 +116,45 @@ IslandBackground = MapGenerator.Generate_Island_BG()
 IslandBackground = pygame.transform.scale_by(IslandBackground,1)
 
 #Misc
-DefaultPlayer = Classes.Player(SpawnPoint[0],SpawnPoint[1],0,CatGirl)
-tempthing = 1024
-TestWall = Classes.Wall(SpawnPoint[0], SpawnPoint[1]-300, 20,Roman)
-TestSlime = Classes.Slime(SpawnPoint[0] - 300, SpawnPoint[1] - 200,0,Angy_Slime)
+DefaultPlayer = None
+TestWall = None
+
+def Reset_Game():
+    global DefaultPlayer, TestWall, Scene, LoadedScene
+    Classes.Clear_All_Objects()
+    
+    # Redraw loading screen during reset
+    screen.fill((0, 0, 0))
+    screen.blit(loading_text, text_rect)
+    pygame.display.flip()
+
+    DefaultPlayer = Classes.Player(SpawnPoint[0], SpawnPoint[1], 0, CatGirl)
+    TestWall = Classes.Wall(SpawnPoint[0], SpawnPoint[1]-300, 20, Roman)
+
+    # Spawn a variety of enemies across the island
+    enemy_positions = MapGenerator.Get_Island_Land_Points(IslandBackground, 30)
+    for i, pos in enumerate(enemy_positions):
+        # Avoid spawning enemies right on top of the player
+        dist_to_player = math.sqrt((pos[0] - SpawnPoint[0])**2 + (pos[1] - SpawnPoint[1])**2)
+        if dist_to_player < 500:
+            continue
+            
+        if i % 10 == 0:
+            Classes.GiantSlime(pos[0], pos[1], 0, Angy_Slime)
+        elif i % 3 == 0:
+            Classes.MiniSlime(pos[0], pos[1], 0, Angy_Slime)
+        else:
+            Classes.Slime(pos[0], pos[1], 0, Angy_Slime)
+    
+    Scene = "MainScene"
+    LoadedScene = False
+    logger.info("Game reset successfully")
+
+#Initial spawn
+Reset_Game()
 
 ui_manager = UIManager()
+tempthing = 1024
 
 while Running == True:
     tempthing -= 1
@@ -134,6 +168,14 @@ while Running == True:
     for event in PyEvents:
         if event.type == pygame.QUIT:
             Running = False
+            
+    # Check for restart command
+    if Scene == "DeathScene":
+        for event in PyEvents:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    Reset_Game()
+
     #______ Adam Ohlsén
     #don't put logic inside of running before this point unless you are certain
     #Scenes
@@ -156,6 +198,11 @@ while Running == True:
         screen.blit(IslandBackground, (-CameraX, -CameraY))
         Log.Obj_Logic_Handler.Knockback()
 
+        # Check for player death
+        if DefaultPlayer.Health <= 0:
+            Scene = "DeathScene"
+            logger.info("Player died, switching to DeathScene")
+
         for obj in Classes.Default_Objects:
             obj.Update_class()
             Rotate(obj)
@@ -169,10 +216,9 @@ while Running == True:
             
 
             screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y)))
-            DefaultPlayer.Update_Hitbox()
-            TestWall.Update_Hitbox()
+            obj.Update_Hitbox()
 
-            #Debugging my hitboxes
+            # The player healthbar
            
 
             #Debug Draw Hitboxes
@@ -195,7 +241,24 @@ while Running == True:
 
         # The player healthbar
         ui_manager.draw_player_ui(screen, DefaultPlayer)
+
+    elif Scene == "DeathScene":
+        # Draw the last frame of the game in the background
+        screen.blit(IslandBackground, (-CameraX, -CameraY))
+        for obj in Classes.Default_Objects:
+            screen_x = obj.Hitbox.centerx - CameraX
+            screen_y = obj.Hitbox.centery - CameraY
+            screen.blit(obj.pic, obj.pic.get_rect(center=(screen_x,screen_y)))
+        
+        ui_manager.draw_death_screen(screen)
             
+    #FPS count. Why? Idfk, i want
+    #Dont's show on the menu
+    if debug_draw and LoadedScene:
+        current_fps = int(Log.clock.get_fps())
+        #Yellow only cause we never used it
+        fps_surface = debug_font.render(f"FPS: {current_fps}", True, (255, 255, 0))
+        screen.blit(fps_surface, (screen.get_width() - 120, 20))
             
     #______ Adam Ohlsén
     #don't put logic past this point unless you are certain

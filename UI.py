@@ -24,6 +24,24 @@ class HealthBar:
 class UIManager:
     def __init__(self):
         self.health_bar = HealthBar(20, 20)
+        self.death_font = pygame.font.Font(None, 120)
+        self.sub_font = pygame.font.Font(None, 50)
 
     def draw_player_ui(self, screen, player):
         self.health_bar.draw(screen, player.Health, player.MaxHealth)
+
+    def draw_death_screen(self, screen):
+        # Semi-transparent red overlay
+        overlay = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
+        overlay.fill((100, 0, 0, 150))
+        screen.blit(overlay, (0, 0))
+
+        # "YOU DIED" text
+        death_text = self.death_font.render("YOU DIED", True, (255, 0, 0))
+        death_rect = death_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 - 50))
+        screen.blit(death_text, death_rect)
+
+        # Restart instruction
+        restart_text = self.sub_font.render("Press 'R' to Restart", True, (255, 255, 255))
+        restart_rect = restart_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 + 50))
+        screen.blit(restart_text, restart_rect)

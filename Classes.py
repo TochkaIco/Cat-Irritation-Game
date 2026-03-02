@@ -12,6 +12,15 @@ EnemyLayer = []
 WallLayer = []
 WeaponLayer = []
 
+def Clear_All_Objects():
+    global Default_Objects, PlayerLayer, EnemyLayer, WallLayer, WeaponLayer
+    Default_Objects.clear()
+    PlayerLayer.clear()
+    EnemyLayer.clear()
+    WallLayer.clear()
+    WeaponLayer.clear()
+    logger.info("Cleared all game objects")
+
 class Empty_Hitboxes:
     def __init__(self,x,y,angle,width,height,LifeTime,Layer):
         self.x = x
@@ -187,11 +196,52 @@ class Slime(Default_Object):
     def Update_Obj_specific(self):
         self.InteractLayers = WallLayer + PlayerLayer
 
+        # Simple AI: Move towards player
+        if PlayerLayer:
+            player = PlayerLayer[0]
+            dx = player.x - self.x
+            dy = player.y - self.y
+            dist = math.sqrt(dx**2 + dy**2)
+            if dist > 0:
+                self.xvelocity = dx / dist
+                self.yvelocity = dy / dist
+            else:
+                self.xvelocity = 0
+                self.yvelocity = 0
+
         def On_Collision(obj,object2):
             if object2.IsTrigger:
                 Log.Damage(obj,object2)
 
         Log.Move_and_Collide_preset(self,On_Collision)
+
+class MiniSlime(Slime):
+    def __init__(self, x, y, angle, RootPic):
+        super().__init__(x, y, angle, RootPic)
+        self.MaxHealth = 50
+        self.Health = self.MaxHealth
+        self.WalkSpeed = 400
+        self.Damage = 10
+        # Shrink the picture for mini slime
+        self.RootPic = pygame.transform.scale_by(RootPic, 1) # Original Slime was scale_by(2) in Default_Object
+        self.OriginPic = self.RootPic
+        self.pic = self.OriginPic
+        self.Update_Hitbox()
+        logger.info("MiniSlime initialized")
+
+class GiantSlime(Slime):
+    def __init__(self, x, y, angle, RootPic):
+        super().__init__(x, y, angle, RootPic)
+        self.MaxHealth = 1000
+        self.Health = self.MaxHealth
+        self.WalkSpeed = 100
+        self.Damage = 50
+        # Grow the picture for giant slime
+        self.RootPic = pygame.transform.scale_by(RootPic, 4)
+        self.OriginPic = self.RootPic
+        self.pic = self.OriginPic
+        self.Update_Hitbox()
+        logger.info("GiantSlime initialized")
 
 class Wall:
     def __init__(self,x,y,angle,RootPic):

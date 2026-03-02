@@ -17,6 +17,8 @@ def Move_and_Collide_preset(obj, On_Collision):
     if velocity_magnitute > 0:
         normalized_x = (obj.xvelocity / velocity_magnitute) * obj.WalkSpeed
         obj.Hitbox.x += normalized_x * DeltaTime   
+        obj.x = obj.Hitbox.centerx
+        obj.Update_Hitbox() # Update points for collision checks
     #_-_
     for object2 in obj.InteractLayers:
         if object2.IsActive == True:
@@ -34,12 +36,14 @@ def Move_and_Collide_preset(obj, On_Collision):
     if velocity_magnitute > 0:  
         normalized_y = (obj.yvelocity / velocity_magnitute) * obj.WalkSpeed
         obj.Hitbox.centery += normalized_y * DeltaTime
+        obj.y = obj.Hitbox.centery
+        obj.Update_Hitbox() # Update points for collision checks
     #_-_
     for object2 in obj.InteractLayers:
         if object2.IsActive == True:
             if object2.IsCluster == True:
                 for hitbox in object2.Hitbox_cluster:
-                    Collided, Func = Check_Collisions(obj,object2,"Y")
+                    Collided, Func = Check_Collisions(obj,hitbox,"Y")
                     if Collided == True:
                         Func(obj,object2)
                         if On_Collision != None:
@@ -183,6 +187,11 @@ def Angled_Collision_React(obj,object2):
         obj.Hitbox.right = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))-1) * XDirection
     if obj.Hitbox.centerx > RightXPoint and CollidedOnY == False and obj.xvelocity <= 0:
         obj.Hitbox.left = object2.Hitbox.centerx + (Xadd + Ex_height + (obj.height / 2 * math.tan(RadAngle))-1) * XDirection
+    
+    # IMPORTANT: Update obj.x and obj.y after resolution
+    obj.x = obj.Hitbox.centerx
+    obj.y = obj.Hitbox.centery
+    
     obj.Update_Hitbox()
     object2.Update_Hitbox()
 
@@ -243,7 +252,7 @@ def Update_hitbox_image_based(self):
         #Maths
         Radians_angle = math.radians(self.angle)
         cos_rad = math.cos(Radians_angle)
-        sin_rad = math.sin(self.angle)
+        sin_rad = math.sin(Radians_angle)
         # Calculate vertices of the rotated rectangle
         Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
 
