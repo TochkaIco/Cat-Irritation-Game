@@ -24,18 +24,15 @@ class Empty_Hitboxes:
         #Set lifetime to 0 to have endless, or don't call the update function
         self.CurrentTime = 0
         self.LifeTime = LifeTime
-        #Can one of you change every PicAngle to angle instead? It was a mistake
-        # naming it Picangle but now all of them are that way. The sooner the 
-        # less work
-        self.PicAngle = angle
+        self.angle = angle
 
-        if self.PicAngle == 0:
+        if self.angle == 0:
             self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
             self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
         else:
             self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
             Rotate_Point = self.Hitbox.center
-            Radians_angle = math.radians(self.PicAngle)
+            Radians_angle = math.radians(self.angle)
             cos_rad = math.cos(Radians_angle)
             sin_rad = math.sin(Radians_angle)
             #Top
@@ -92,7 +89,7 @@ class Default_Object:
         self.IsTrigger = IsTrigger
 
         self.I_frames = 0.7 #(Measured in seconds)
-        self.Sex_offenders_list = []
+        self.IFrame_Trackers = []
 
         # (list of miscellaneous functions to start every frame)
         self.StartFunctions = []
@@ -102,7 +99,7 @@ class Default_Object:
         self.height = self.OriginPic.get_height()
         self.width = self.OriginPic.get_width()
 
-        self.PicAngle = angle
+        self.angle = angle
         
         #Put all __init__ logic before the append
         Default_Objects.append(self)
@@ -112,7 +109,7 @@ class Default_Object:
 
     #idk what i was doing here, i guess it looks better
     def Update_i_frame(self):
-        for Counter in self.Sex_offenders_list:
+        for Counter in self.IFrame_Trackers:
             Counter.Update_time()
     
     def Update_Hitbox(self):
@@ -209,19 +206,19 @@ class Wall:
         self.RootPic = pygame.transform.scale_by(self.RootPic,2)
         self.OriginPic = self.RootPic
         self.pic = self.OriginPic
-        self.PicAngle = angle
+        self.angle = angle
         self.Layer = "WallLayer"
         self.height = self.OriginPic.get_height()
         print (f"height: {self.height}")
         self.width = self.OriginPic.get_width()
         print (f"width: {self.width}")
-        if self.PicAngle != 0:
+        if self.angle != 0:
             self.Hitbox = self.OriginPic.get_rect(center= (self.x,self.y))
             #New Hitbox
             #Points
             Rotate_Point = self.Hitbox.center
             #Maths
-            Radians_angle = math.radians(self.PicAngle)
+            Radians_angle = math.radians(self.angle)
             cos_rad = math.cos(Radians_angle)
             sin_rad = math.sin(Radians_angle)
             #Top

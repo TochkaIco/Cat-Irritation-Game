@@ -1,7 +1,7 @@
 import math
 from pygame import time
-from pygame import rect # don't remove the rect import guys, it might seem like i am retarded
-# but rect and Rect are different functions
+from pygame import rect 
+# Use 'Rect' for class, 'rect' for module functions
 from pygame import Rect
 import logging
 logger = logging.getLogger(__name__)
@@ -78,80 +78,57 @@ def Nothing(*_):
 
 
 #--
-def CheckObbCollisions(obj1,obj2):
-    Collided = False
-    Dist = 50 #put it at anything positive
-    pointslist = obj1.Points + obj2.Points
-    CurrentIterration = 0
-    for axis in range(6):
-        if CurrentIterration == 3:
-            CurrentIterration = 4
-        point1 = (pointslist[CurrentIterration])
+def CheckObbCollisions(obj1, obj2):
+    """Checks for collision between two objects using the Separating Axis Theorem (SAT)."""
+    # Potential axes to check: the normals to the edges of both boxes.
+    # For rectangles, this is just the local X and Y axes of each box.
+    
+    def get_axes(obj):
+        # We need two perpendicular axes for each object.
+        # Since these are rectangles, we can use the vectors from point 0 to 1 and 0 to 2.
+        p0 = obj.Points[0]
+        p1 = obj.Points[1]
+        p2 = obj.Points[2]
         
-        point2 = (pointslist[CurrentIterration + 1])
-        # Do point[0] to access the x and point[1] to acces y
-
-        ax = point1[0]-point2[0]
-        ay = point1[1]-point2[1]
-        length = math.sqrt(ax**2+ay**2)
-        ux, uy = ax / length, ay / length
-        #max points
-
-        obj1_min_x = obj2_min_x = math.inf
-        obj1_min_point = obj1_max_point = obj2_min_point = obj2_max_point = (0,0)
-        obj1_max_x = obj2_max_x = -math.inf
-
-        for points in obj1.Points:
-            if ax != 0:
-                dist = (points[0]) * ux + (points[1] * uy)
-                targetx = dist * ux
-                targety = dist * uy
-            else:
-                targetx = points[0]
-                targety = points[1]
-            if targetx < obj1_min_x:
-                obj1_min_x = targetx
-                obj1_min_y = targety
-            if targetx > obj1_max_x:
-                obj1_max_x = targetx
-                obj1_max_y = targety
-
-        for points in obj2.Points:
-            if ax != 0:
-                dist = (points[0]) * ux + (points[1] * uy)
-                targetx = dist * ux
-                targety = dist * uy
-            else:
-                targetx = points[0]
-                targety = points[1]
-            if targetx < obj2_min_x:
-                obj2_min_x = targetx
-                obj2_min_y = targety
-            if targetx > obj2_max_x:
-                obj2_max_x = targetx 
-                obj2_max_y = targety      
+        axis1 = (p1[0] - p0[0], p1[1] - p0[1])
+        axis2 = (p2[0] - p0[0], p2[1] - p0[1])
         
-        if ax != 0:
-            if obj2_min_x < obj1_min_x < obj2_max_x or obj2_min_x < obj1_max_x < obj2_max_x:
-                Collided = True
-            else:
-                Collided = False
-                break
-        else:
-            if obj2_min_y < obj1_min_y < obj2_max_y or obj2_min_y < obj1_max_y < obj2_max_y:
-                Collided = True
-            else:
-                Collided = False
-                break
-        CurrentIterration += 1
+        # Normalize
+        len1 = math.sqrt(axis1[0]**2 + axis1[1]**2)
+        len2 = math.sqrt(axis2[0]**2 + axis2[1]**2)
+        
+        if len1 == 0 or len2 == 0:
+            return []
+            
+        return [(axis1[0]/len1, axis1[1]/len1), (axis2[0]/len2, axis2[1]/len2)]
 
-    return Collided
+    axes = get_axes(obj1) + get_axes(obj2)
+    
+    for axis in axes:
+        # Project both objects onto the axis
+        def project(obj, axis):
+            min_proj = math.inf
+            max_proj = -math.inf
+            for p in obj.Points:
+                proj = p[0] * axis[0] + p[1] * axis[1]
+                if proj < min_proj: min_proj = proj
+                if proj > max_proj: max_proj = proj
+            return min_proj, max_proj
+        
+        min1, max1 = project(obj1, axis)
+        min2, max2 = project(obj2, axis)
+        
+        # Check for separation
+        if max1 < min2 or max2 < min1:
+            return False # Found a separating axis, no collision
+            
+    return True # No separating axis found, they are colliding
 
 def Check_Collisions(obj,object2,MoveAxis):
     Collided = False
     Func = Nothing
 
-    if obj.PicAngle != 0 or object2.PicAngle != 0:
+    if obj.angle != 0 or object2.angle != 0:
         Collided = CheckObbCollisions(obj,object2)
         if object2.IsTrigger == False:
             Func = Angled_Collision_React
@@ -174,7 +151,7 @@ def Angled_Collision_React(obj,object2):
     else: YDirection = 1
     if obj.Hitbox.centerx > object2.Hitbox.centerx: XDirection = 1
     else: XDirection = -1
-    if object2.PicAngle < 0:
+    if object2.angle < 0:
         YDirection *= -1
         XDirection *= -1
     #Getting the points to compare pos to
@@ -182,7 +159,7 @@ def Angled_Collision_React(obj,object2):
     else: TopYPoint, BottomYPoint, LeftXPoint, RightXPoint, ObjPIndex = object2.Points[1][1], object2.Points[2][1], object2.Points[0][0], object2.Points[3][0], 0     
 
     #tan v
-    RadAngle = math.radians(object2.PicAngle)
+    RadAngle = math.radians(object2.angle)
     Xadd = (object2.width / 2 + (object2.width / 2 * math.tan(RadAngle)) * math.tan(RadAngle/2))
     Yadd = (object2.height / 2 + (object2.height / 2 * math.tan(RadAngle)) * math.tan(RadAngle/2))
     Ey_height = (obj.Hitbox.centerx - object2.Hitbox.centerx) * math.tan(RadAngle) * YDirection
@@ -239,7 +216,7 @@ def YCollision_React_0(obj,object2):
 #
 def Damage(obj,object2):
     #Checks if obj1 has already been damaged by object2
-    for i_frame_tracker in object2.Sex_offenders_list:
+    for i_frame_tracker in object2.IFrame_Trackers:
         #print(f"Victim: {i_frame_tracker.victim}")
         #print(f"obj: {obj}")
         if i_frame_tracker.victim == obj:
@@ -249,11 +226,11 @@ def Damage(obj,object2):
     direction = math.atan2(obj.Hitbox.centery - object2.Hitbox.centery,obj.Hitbox.centerx - object2.Hitbox.centerx)
     Obj_Logic_Handler.Apply_knockback(obj,object2.KnockBack,direction,knockbacktime=object2.KnockBackTime,Should_stun=False)
     #print(f"Obj health ={obj.Health}")
-    obj_iframe_tracker(object2,obj)
+    IFrameTracker(object2,obj)
     
 def Update_hitbox_image_based(self):
-    if self.PicAngle == 0:
-        self.Hitbox = self.OriginPic.get_rect(center= (self.Hitbox.centerx,self.Hitbox.centery))
+    if self.angle == 0:
+        self.Hitbox = self.OriginPic.get_rect(center= (self.x, self.y))
         #
         self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
         self.height = self.OriginPic.get_height()
@@ -264,12 +241,12 @@ def Update_hitbox_image_based(self):
         #Points
         Rotate_Point = self.Hitbox.center
         #Maths
-        Radians_angle = math.radians(self.PicAngle)
+        Radians_angle = math.radians(self.angle)
         cos_rad = math.cos(Radians_angle)
-        sin_rad = math.sin(Radians_angle)
-        #Top
-        #Roman, Fedor, If you're looking at this code and wondering why i put the variables in (), IT MAKES IT PRETTIER!! SHUT
+        sin_rad = math.sin(self.angle)
+        # Calculate vertices of the rotated rectangle
         Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
+
         Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
         #Bottom
         Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
@@ -289,13 +266,13 @@ def Update_hitbox_image_based(self):
 
 
 def Update_hitbox_dimension_based(self):
-    if self.PicAngle == 0:
-        self.Hitbox = Rect(center=(self.Hitbox.centerx,self.Hitbox.centery),width=self.width,height=self.height)
+    if self.angle == 0:
+        self.Hitbox = Rect(center=(self.x, self.y),width=self.width,height=self.height)
         self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
     else:
-        self.Hitbox = Rect(center=(self.Hitbox.centerx,self.Hitbox.centery),width=self.width,height=self.height)
+        self.Hitbox = Rect(center=(self.x, self.y),width=self.width,height=self.height)
         Rotate_Point = self.Hitbox.center
-        Radians_angle = math.radians(self.PicAngle)
+        Radians_angle = math.radians(self.angle)
         cos_rad = math.cos(Radians_angle)
         sin_rad = math.sin(Radians_angle)
         #Top
@@ -317,21 +294,19 @@ def Update_hitbox_dimension_based(self):
 
 #- TrackList
 
-#Hey, Roman and Fedor. Im bored so i named them this, change the names later ig.
-#It does get a bit confusing but oh well.
-class obj_iframe_tracker:
-    def __init__(self,sex_offender,victim):
+class IFrameTracker:
+    def __init__(self,attacker,victim):
         self.time_since_hit = 0
-        self.sex_offender = sex_offender
+        self.attacker = attacker
         self.victim = victim
         print(self.victim)
         #Adds a iframe tracker object
-        sex_offender.Sex_offenders_list.append(self)
+        attacker.IFrame_Trackers.append(self)
     
     def Update_time(self):
         self.time_since_hit += DeltaTime
         if self.time_since_hit > self.victim.I_frames:
-            self.sex_offender.Sex_offenders_list.remove(self)
+            self.attacker.IFrame_Trackers.remove(self)
             del self
         
 class Inventory:

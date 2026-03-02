@@ -8,10 +8,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 import Classes
+from AssetManager import AssetManager
+from UI import UIManager
+
 #Hey, Sasha, Maxi, Roman or Indy. Why tf is the terminal telling me no module found? Literally
 # there is a module though. Im leaving this text in the background, hope one of you notices
-# FUCK YOU ADAM
-#map generation import
+# map generation import
 import MapGenerator
 
 ##pygame necessities
@@ -45,13 +47,12 @@ pygame.display.flip()
 
 #sprites --
 # cm- Roman you will be a placeholder for everything
-Roman = pygame.image.load("Images/Roman-Verde.png").convert_alpha()
+Roman = AssetManager.get_image("Images/Roman-Verde.png")
 Roman = pygame.transform.scale_by(Roman,0.3)
 
-CatGirl = pygame.image.load("Images/Catgirl 15x38.png").convert_alpha()
-HealthBar = pygame.image.load("Images/Cat_health_bar.png").convert_alpha()
-HealthBar_Inside = pygame.image.load("Images/Cat_health_bar_Insides.png").convert_alpha()
-Angy_Slime = pygame.image.load("Images/Angry_Slime.png").convert_alpha()
+CatGirl = AssetManager.get_image("Images/Catgirl 15x38.png")
+# UI images are now handled by UIManager
+Angy_Slime = AssetManager.get_image("Images/Angry_Slime.png")
 #}
 
 ###LogicAspects
@@ -94,7 +95,7 @@ def RayCast(OriginX,OriginY,TargetX,TargetY,CollisionLayers):
     return None,None
 
 def Rotate(obj):
-    obj.pic = pygame.transform.rotate(obj.OriginPic, -obj.PicAngle)
+    obj.pic = pygame.transform.rotate(obj.OriginPic, -obj.angle)
 
 #Managing camera to hold the player always in the middle
 def UpdateCamera(target, camera_smoothness=0.1):
@@ -118,6 +119,8 @@ DefaultPlayer = Classes.Player(SpawnPoint[0],SpawnPoint[1],0,CatGirl)
 tempthing = 1024
 TestWall = Classes.Wall(SpawnPoint[0], SpawnPoint[1]-300, 20,Roman)
 TestSlime = Classes.Slime(SpawnPoint[0] - 300, SpawnPoint[1] - 200,0,Angy_Slime)
+
+ui_manager = UIManager()
 
 while Running == True:
     tempthing -= 1
@@ -184,24 +187,14 @@ while Running == True:
                 else:
                     pygame.draw.rect(screen, (0, 0, 255), adjusted_hitbox)
                     pygame.draw.circle(screen, (255, 0, 0), (screen_x, screen_y), 2)
-                if obj.PicAngle != 0:
+                if obj.angle != 0:
                     pygame.draw.circle(screen, (255,0,0), (obj.Top_left_point[0] - CameraX, obj.Top_left_point[1] - CameraY),2)
                     pygame.draw.circle(screen, (255,0,0), (obj.Top_right_point[0] - CameraX, obj.Top_right_point[1] - CameraY),2)
                     pygame.draw.circle(screen, (255,0,0), (obj.Bottom_left_point[0] - CameraX, obj.Bottom_left_point[1] - CameraY),2)
                     pygame.draw.circle(screen, (255,0,0), (obj.Bottom_right_point[0] - CameraX, obj.Bottom_right_point[1] - CameraY),2)
 
-        #The player healthbar, maybeeee i should've made a ui class but it's like 24:00
-        logger.info(f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Default_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
-        print (f"Screen = {screen.get_width(), screen.get_height()} OriginalScreen = {Default_screen} Scale Proportion = {Proportion_To_Scale_By} Size Diff = {Size_Difference}")
-
-        #Wait wtf? why is that genuinely just not working?
-        if (DefaultPlayer.Health) > 0:
-            cropped_health_inner = pygame.Surface((334 * (DefaultPlayer.Health / DefaultPlayer.MaxHealth),99),pygame.SRCALPHA)
-            cropped_health_inner.blit(HealthBar_Inside,(0,0))
-            screen.blit(cropped_health_inner,(20,20))
-        screen.blit(HealthBar, (20,20))
-        logger.info(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
-        print(f"Healthbar: ", HealthBar.get_width(), HealthBar.get_height())
+        # The player healthbar
+        ui_manager.draw_player_ui(screen, DefaultPlayer)
             
             
     #______ Adam Ohlsén
