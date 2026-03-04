@@ -22,7 +22,7 @@ def Clear_All_Objects():
     logger.info("Cleared all game objects")
 
 class Empty_Hitboxes:
-    def __init__(self,x,y,angle,width,height,LifeTime,Layer):
+    def __init__(self,x,y,angle,width,height,LifeTime,Layer,Pivot):
         self.x = x
         self.y = y
         self.IsTrigger = True
@@ -39,26 +39,23 @@ class Empty_Hitboxes:
             self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
             self.Points = (self.Hitbox.topleft, self.Hitbox.topright,self.Hitbox.bottomleft, self.Hitbox.bottomright)
         else:
+
             self.Hitbox = pygame.Rect(center=(x,y),width=width,height=height)
             Rotate_Point = self.Hitbox.center
             Radians_angle = math.radians(self.angle)
             cos_rad = math.cos(Radians_angle)
             sin_rad = math.sin(Radians_angle)
-            #Top
-            Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
-            Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
-            #Bottom
-            Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
-            Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
+            #Pivoted_points
+            self.Top_left_point = Log.Rotate_around_point_radians(self.Hitbox.topleft,Pivot,sin_rad,cos_rad)
+            self.Top_right_point = Log.Rotate_around_point_radians(self.Hitbox.topright,Pivot,sin_rad,cos_rad)
+            self.Bottom_left_point = Log.Rotate_around_point_radians(self.Hitbox.bottomleft,Pivot,sin_rad,cos_rad)
+            self.Bottom_right_point = Log.Rotate_around_point_radians(self.Hitbox.bottomright,Pivot,sin_rad,cos_rad)
+
             #Points
-            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
-            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
-            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
-            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
+            self.Top_left_point = Log.Rotate_around_point_radians(self.Top_left_point,Rotate_Point,sin_rad,cos_rad)
+            self.Top_right_point = Log.Rotate_around_point_radians(self.Top_right_point,Rotate_Point,sin_rad,cos_rad)
+            self.Bottom_left_point = Log.Rotate_around_point_radians(self.Bottom_left_point,Rotate_Point,sin_rad,cos_rad)
+            self.Bottom_right_point = Log.Rotate_around_point_radians(self.Bottom_right_point,Rotate_Point,sin_rad,cos_rad)
             self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
             logger.info(f"Empty hitboxes initialized")
     def Update_Hitbox(self):
@@ -272,23 +269,11 @@ class Wall:
             cos_rad = math.cos(Radians_angle)
             sin_rad = math.sin(Radians_angle)
             #Top
-            #Roman, Fedor, If you're looking at this code and wondering why i put the variables in (), IT MAKES IT PRETTIER!! SHUT
-            Top_Left_Offset_X,Top_Left_Offset_Y = (self.Hitbox.topleft[0] - Rotate_Point[0]),(self.Hitbox.topleft[1] - Rotate_Point[1])
-            Top_Right_Offset_X,Top_Right_Offset_Y = (self.Hitbox.topright[0] - Rotate_Point[0]),(self.Hitbox.topright[1] - Rotate_Point[1])
-            #Bottom
-            Bottom_Left_Offset_X,Bottom_Left_Offset_Y = (self.Hitbox.bottomleft[0] - Rotate_Point[0]), (self.Hitbox.bottomleft[1] - Rotate_Point[1])
-            Bottom_Right_Offset_X,Bottom_Right_Offset_Y = (self.Hitbox.bottomright[0] - Rotate_Point[0]),(self.Hitbox.bottomright[1] - Rotate_Point[1])
-
-            #Calculating points
-            self.Top_left_point = ((Rotate_Point[0] + cos_rad * Top_Left_Offset_X) - sin_rad * Top_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Left_Offset_X) + cos_rad * Top_Left_Offset_Y)
-            self.Top_right_point = ((Rotate_Point[0] + cos_rad * Top_Right_Offset_X) - sin_rad * Top_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Top_Right_Offset_X) + cos_rad * Top_Right_Offset_Y)
-            self.Bottom_left_point = ((Rotate_Point[0] + cos_rad * Bottom_Left_Offset_X) - sin_rad * Bottom_Left_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Left_Offset_X) + cos_rad * Bottom_Left_Offset_Y)
-            self.Bottom_right_point = ((Rotate_Point[0] + cos_rad * Bottom_Right_Offset_X) - sin_rad * Bottom_Right_Offset_Y, 
-                                   (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)
-            
+            #Points
+            self.Top_left_point = Log.Rotate_around_point_radians(self.Hitbox.topleft,Rotate_Point,sin_rad,cos_rad)
+            self.Top_right_point = Log.Rotate_around_point_radians(self.Hitbox.topright,Rotate_Point,sin_rad,cos_rad)
+            self.Bottom_left_point = Log.Rotate_around_point_radians(self.Hitbox.bottomleft,Rotate_Point,sin_rad,cos_rad)
+            self.Bottom_right_point = Log.Rotate_around_point_radians(self.Hitbox.bottomright,Rotate_Point,sin_rad,cos_rad)
             self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
                         
         else:

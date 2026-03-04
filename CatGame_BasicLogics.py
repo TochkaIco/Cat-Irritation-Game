@@ -311,6 +311,16 @@ def Rotate_around_point(OriginPoint,Pivot,angle):
 
     New_x = (Pivot[0] + cos_angle * X_offset) - sin_angle * Y_offset
     New_y = (Pivot[0] + sin_angle * X_offset) + cos_angle * Y_offset
+    return New_x,New_y
+
+def Rotate_around_point_radians(OriginPoint,Pivot,sin,cos):
+
+    X_offset = (OriginPoint[0] - Pivot[0])
+    Y_offset = (OriginPoint[1]- Pivot[1])
+
+    New_x = (Pivot[0] + cos * X_offset) - sin * Y_offset
+    New_y = (Pivot[0] + sin * X_offset) + cos * Y_offset
+    return New_x,New_y
 
 #- TrackList
 
@@ -330,9 +340,19 @@ class IFrameTracker:
             del self
         
 class Inventory:
-    def __init__(self,parent,space):
+    def __init__(self,parent,space,startitem):
         self.parent = parent
         self.space = space
+        self.current_item = startitem
+        self.Item_list = []
+        self.Item_list.append(startitem)
+
+    def Use_weapon(self):
+        self.current_item.Summon_weapon()
+        pass
+
+    def Swap_between():
+        pass
         
 
 class Kn_log:
