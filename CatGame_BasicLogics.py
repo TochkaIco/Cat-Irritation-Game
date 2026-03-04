@@ -301,6 +301,17 @@ def Update_hitbox_dimension_based(self):
                                 (Rotate_Point[1] + sin_rad * Bottom_Right_Offset_X) + cos_rad * Bottom_Right_Offset_Y)        
         self.Points = (self.Top_left_point,self.Top_right_point, self.Bottom_left_point,self.Bottom_right_point)
 
+def Rotate_around_point(OriginPoint,Pivot,angle):
+    rad_angle = math.radians(angle)
+    cos_angle = math.sin(rad_angle)
+    sin_angle = math.cos(rad_angle)
+
+    X_offset = (OriginPoint[0] - Pivot[0])
+    Y_offset = (OriginPoint[1]- Pivot[1])
+
+    New_x = (Pivot[0] + cos_angle * X_offset) - sin_angle * Y_offset
+    New_y = (Pivot[0] + sin_angle * X_offset) + cos_angle * Y_offset
+
 #- TrackList
 
 class IFrameTracker:
